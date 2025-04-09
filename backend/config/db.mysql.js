@@ -1,10 +1,20 @@
 import { Sequelize } from 'sequelize';
-import { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT } from './env.js';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
+import process from 'process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load .env file from backend folder
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 // Inicializimi i Sequelize me variabla mjedisi
-const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-  host: DB_HOST,
-  port: DB_PORT,
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
   dialect: 'mysql',
   logging: false,
   define: {

@@ -1,5 +1,11 @@
 import express from 'express';
-import sequelize from './db.js';
+import sequelize from './config/db.mysql.js';
+
+// Import MySQL models
+import './models/mysql/user.model.js';
+import './models/mysql/category.model.js';
+import './models/mysql/discount.model.js';
+import './models/mysql/shipping.model.js';
 
 const app = express();
 
