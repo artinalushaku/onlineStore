@@ -1,41 +1,22 @@
-const express = require('express');
+import express from 'express';
+import cartController from '../controllers/cart.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const cartController = require('../controllers/cart.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Marrja e shportes se perdoruesit
-router.get(
-    '/',
-    authMiddleware.protect,
-    cartController.getUserCart
-);
+router.get('/', authMiddleware, cartController.getUserCart);
 
-// Shtimi i nje produkti ne shporte
-router.post(
-    '/',
-    authMiddleware.protect,
-    cartController.addToCart
-);
+// Shtimi i produktit ne shporte
+router.post('/add', authMiddleware, cartController.addToCart);
 
-// Perditesimi i sasise se nje produkti ne shporte
-router.put(
-    '/',
-    authMiddleware.protect,
-    cartController.updateCartItem
-);
+// Perditesimi i sasise se produktit ne shporte
+router.put('/update', authMiddleware, cartController.updateCartItem);
 
-// Heqja e nje produkti nga shporta
-router.delete(
-    '/:productId',
-    authMiddleware.protect,
-    cartController.removeFromCart
-);
+// Heqja e produktit nga shporta
+router.delete('/remove/:productId', authMiddleware, cartController.removeFromCart);
 
 // Pastrimi i shportes
-router.delete(
-    '/',
-    authMiddleware.protect,
-    cartController.clearCart
-);
+router.delete('/clear', authMiddleware, cartController.clearCart);
 
-module.exports = router;
+export default router;

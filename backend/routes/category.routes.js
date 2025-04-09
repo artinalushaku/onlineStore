@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import categoryController from '../controllers/category.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+import uploadMiddleware from '../middleware/upload.middleware.js';
+
 const router = express.Router();
-const categoryController = require('../controllers/category.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const uploadMiddleware = require('../middleware/upload.middleware');
 
 // Marrja e te gjitha kategorive (publike)
 router.get('/', categoryController.getAllCategories);
@@ -39,4 +40,4 @@ router.delete(
   categoryController.deleteCategory
 );
 
-module.exports = router;
+export default router;

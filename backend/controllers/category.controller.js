@@ -1,6 +1,6 @@
-const Category = require('../models/mysql/category.model');
-const slugify = require('slugify');
-const { Op } = require('sequelize');
+import Category from '../models/mysql/category.model.js';
+import slugify from 'slugify';
+import { Op } from 'sequelize';
 
 // Kontrolluesi i kategorive
 const categoryController = {
@@ -211,4 +211,4 @@ const categoryController = {
   }
 };
 
-module.exports = categoryController;
+export default categoryController;

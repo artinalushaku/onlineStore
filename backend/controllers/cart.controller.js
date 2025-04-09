@@ -1,5 +1,5 @@
-const Cart = require('../models/mongo/cart.model');
-const Product = require('../models/mysql/product.model');
+import Cart from '../models/mongo/cart.model.js';
+import Product from '../models/mysql/product.model.js';
 
 // Kontrolluesi i shportes
 const cartController = {
@@ -74,7 +74,7 @@ const cartController = {
                 }
 
                 cart.items[itemIndex].quantity = newQuantity;
-                cart.items[itemIndex].price = product.price; // Perditesojme çmimin ne rast ndryshimi
+                cart.items[itemIndex].price = product.price; // Perditesojme ï¿½mimin ne rast ndryshimi
             } else {
                 // Nese produkti nuk eshte ne shporte, e shtojme
                 cart.items.push({
@@ -133,7 +133,7 @@ const cartController = {
 
             // Perditesojme sasine
             cart.items[itemIndex].quantity = quantity;
-            cart.items[itemIndex].price = product.price; // Perditesojme çmimin ne rast ndryshimi
+            cart.items[itemIndex].price = product.price; // Perditesojme ï¿½mimin ne rast ndryshimi
 
             // Rillogarisim totalin
             cart.total = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -201,4 +201,4 @@ const cartController = {
     }
 };
 
-module.exports = cartController;// JavaScript source code
+export default cartController;

@@ -1,59 +1,66 @@
-const express = require('express');
-const router = express.Router();
-const userController = require('../controllers/user.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+import express from 'express';
+import userController from '../controllers/user.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
 
-// Marrja e profilit te perdoruesit
-router.get(
-  '/profile',
+const router = express.Router();
+
+// Regjistrimi i perdoruesit te ri
+router.post('/register', userController.register);
+
+// Hyrja ne sistem
+router.post('/login', userController.login);
+
+// Marrja e profilit personal
+router.get('/profile',
   authMiddleware.protect,
-  userController.getUserProfile
+  userController.getProfile
 );
 
-// Perditesimi i profilit te perdoruesit
-router.put(
-  '/profile',
+// Perditesimi i profilit personal
+router.put('/profile',
   authMiddleware.protect,
-  userController.updateUserProfile
+  userController.updateProfile
 );
 
 // Ndryshimi i fjalekalimit
-router.put(
-  '/change-password',
+router.put('/change-password',
   authMiddleware.protect,
   userController.changePassword
 );
 
-// Marrja e te gjithe perdoruesve (vetem admin)
-router.get(
-  '/',
+// Kerkesa per rivendosjen e fjalekalimit
+router.post('/forgot-password', userController.forgotPassword);
+
+// Rivendosja e fjalekalimit
+router.post('/reset-password/:token', userController.resetPassword);
+
+// Admin routes
+// Marrja e te gjithe perdoruesve
+router.get('/',
   authMiddleware.protect,
   authMiddleware.restrictTo('admin'),
   userController.getAllUsers
 );
 
-// Marrja e nje perdoruesi te vetem (vetem admin)
-router.get(
-  '/:id',
+// Marrja e nje perdoruesi te vetem
+router.get('/:id',
   authMiddleware.protect,
   authMiddleware.restrictTo('admin'),
   userController.getUserById
 );
 
-// Perditesimi i nje perdoruesi (vetem admin)
-router.put(
-  '/:id',
+// Perditesimi i nje perdoruesi
+router.put('/:id',
   authMiddleware.protect,
   authMiddleware.restrictTo('admin'),
   userController.updateUser
 );
 
-// Rivendosja e fjalekalimit (vetem admin)
-router.put(
-  '/:id/reset-password',
+// Fshirja e nje perdoruesi
+router.delete('/:id',
   authMiddleware.protect,
   authMiddleware.restrictTo('admin'),
-  userController.resetUserPassword
+  userController.deleteUser
 );
 
-module.exports = router;
+export default router;

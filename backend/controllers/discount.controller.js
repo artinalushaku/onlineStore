@@ -1,5 +1,5 @@
-const Discount = require('../models/mysql/discount.model');
-const { Op } = require('sequelize');
+import Discount from '../models/mysql/discount.model.js';
+import { Op } from 'sequelize';
 
 // Kontrolluesi i kodeve te zbritjes
 const discountController = {
@@ -189,4 +189,4 @@ const discountController = {
   }
 };
 
-module.exports = discountController;
+export default discountController;

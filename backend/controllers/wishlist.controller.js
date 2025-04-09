@@ -1,5 +1,5 @@
-const Wishlist = require('../models/mongo/wishlist.model');
-const Product = require('../models/mysql/product.model');
+import Wishlist from '../models/mongo/wishlist.model.js';
+import Product from '../models/mysql/product.model.js';
 
 // Kontrolluesi i listes se deshirave
 const wishlistController = {
@@ -125,4 +125,4 @@ const wishlistController = {
     }
 };
 
-module.exports = wishlistController;
+export default wishlistController;

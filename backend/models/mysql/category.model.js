@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/db.mysql');
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/db.mysql.js';
 
 const Category = sequelize.define('Category', {
   id: {
@@ -43,4 +43,4 @@ const Category = sequelize.define('Category', {
 Category.hasMany(Category, { foreignKey: 'parent_id', as: 'subcategories' });
 Category.belongsTo(Category, { foreignKey: 'parent_id', as: 'parent' });
 
-module.exports = Category;
+export default Category;

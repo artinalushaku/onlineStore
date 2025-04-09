@@ -1,4 +1,4 @@
-const Shipping = require('../models/mysql/shipping.model');
+import Shipping from '../models/mysql/shipping.model.js';
 
 // Kontrolluesi i metodave te dergeses
 const shippingController = {
@@ -149,4 +149,4 @@ const shippingController = {
   }
 };
 
-module.exports = shippingController;
+export default shippingController;

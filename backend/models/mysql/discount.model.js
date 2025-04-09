@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/db.mysql');
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/db.mysql.js';
 
 const Discount = sequelize.define('Discount', {
   id: {
@@ -50,4 +50,4 @@ const Discount = sequelize.define('Discount', {
   }
 });
 
-module.exports = Discount;
+export default Discount;

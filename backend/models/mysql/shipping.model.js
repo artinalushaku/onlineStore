@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/db.mysql');
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/db.mysql.js';
 
 const Shipping = sequelize.define('Shipping', {
   id: {
@@ -37,4 +37,4 @@ const Shipping = sequelize.define('Shipping', {
   }
 });
 
-module.exports = Shipping;
+export default Shipping;

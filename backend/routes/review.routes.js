@@ -1,33 +1,31 @@
-const express = require('express');
-const router = express.Router();
-const reviewController = require('../controllers/review.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const uploadMiddleware = require('../middleware/upload.middleware');
+import express from 'express';
+import reviewController from '../controllers/review.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+import uploadMiddleware from '../middleware/upload.middleware.js';
 
-// Marrja e komenteve per nje produkt (publike)
+const router = express.Router();
+
+// Marrja e te gjitha recensioneve per nje produkt
 router.get('/product/:productId', reviewController.getProductReviews);
 
-// Krijimi i nje komenti te ri (vetem perdoruesit e identifikuar)
-router.post(
-  '/',
+// Krijimi i nje recensioni te ri
+router.post('/',
   authMiddleware.protect,
-  uploadMiddleware.array('images', 3),
+  uploadMiddleware.array('images', 5),
   reviewController.createReview
 );
 
-// Perditesimi i nje komenti (vetem pronari i komentit)
-router.put(
-  '/:id',
+// Perditesimi i nje recensioni
+router.put('/:id',
   authMiddleware.protect,
-  uploadMiddleware.array('images', 3),
+  uploadMiddleware.array('images', 5),
   reviewController.updateReview
 );
 
-// Fshirja e nje komenti (pronari ose admin)
-router.delete(
-  '/:id',
+// Fshirja e nje recensioni
+router.delete('/:id',
   authMiddleware.protect,
   reviewController.deleteReview
 );
 
-module.exports = router;
+export default router;
