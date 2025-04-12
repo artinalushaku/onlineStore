@@ -1,5 +1,4 @@
-// JavaScript source code
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const cartItemSchema = new mongoose.Schema({
     productId: {
