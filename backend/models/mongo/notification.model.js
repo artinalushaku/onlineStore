@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const notificationSchema = new mongoose.Schema({
     userId: {
         type: Number, //MySQL ID
-        required: true
+        required: true,
+        index: true // This is defining an index on userId
     },
     title: {
         type: String,
@@ -29,9 +30,6 @@ const notificationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 //Indeksi per kerkim me te shpejte
-notificationSchema.index({
-    userId: 1
-});
 notificationSchema.index({
     createdAt: -1
 });

@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const reviewSchema = new mongoose.Schema({
   userId: {
     type: Number, // MySQL ID
-    required: true
+    required: true,
+    index: true // Define index here instead of separately
   },
   userName: {
     type: String,
@@ -11,7 +12,8 @@ const reviewSchema = new mongoose.Schema({
   },
   productId: {
     type: Number, // MySQL ID
-    required: true
+    required: true,
+    index: true // Define index here instead of separately
   },
   rating: {
     type: Number,
@@ -36,8 +38,8 @@ const reviewSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Indeksi per kerkim me te shpejte
-reviewSchema.index({ productId: 1 });
-reviewSchema.index({ userId: 1 });
+// Remove duplicate index declarations
+// reviewSchema.index({ productId: 1 });
+// reviewSchema.index({ userId: 1 });
 
 export default mongoose.model('Review', reviewSchema);

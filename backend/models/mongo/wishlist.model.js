@@ -27,12 +27,13 @@ const wishlistSchema = new mongoose.Schema({
     userId: {
         type: Number, // MySQL ID
         required: true,
-        unique: true
+        unique: true,
+        index: true // Define index here
     },
     items: [wishlistItemSchema]
 }, { timestamps: true });
 
-// Indeksi per kerkim me te shpejte
-wishlistSchema.index({ userId: 1 });
+// Remove duplicate index
+// wishlistSchema.index({ userId: 1 });
 
 export default mongoose.model('Wishlist', wishlistSchema);

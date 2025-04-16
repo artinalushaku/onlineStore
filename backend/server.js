@@ -26,7 +26,7 @@ connectMongoDB()
 
 // Sync sequelize models
 sequelize.sync({ alter: true })
-  .then(() => console.log('MySQL Database synchronized'))
+  .then(() => console.log('MySQL Database connected'))
   .catch(err => console.error('Failed to sync MySQL database:', err));
 
 const PORT = 5000;

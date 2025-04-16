@@ -28,7 +28,8 @@ const cartSchema = new mongoose.Schema({
     userId: {
         type: Number, // MySQL ID
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     items: [cartItemSchema],
     total: {
@@ -36,8 +37,5 @@ const cartSchema = new mongoose.Schema({
         default: 0
     }
 }, { timestamps: true });
-
-// Indeks per kerkim me te shpejte
-cartSchema.index({ userId: 1 });
 
 export default mongoose.model('Cart', cartSchema);
