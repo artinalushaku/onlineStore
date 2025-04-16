@@ -40,4 +40,4 @@ const cartSchema = new mongoose.Schema({
 // Indeks per kerkim me te shpejte
 cartSchema.index({ userId: 1 });
 
-module.exports = mongoose.model('Cart', cartSchema);
+export default mongoose.model('Cart', cartSchema);

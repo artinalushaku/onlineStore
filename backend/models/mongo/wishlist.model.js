@@ -35,4 +35,4 @@ const wishlistSchema = new mongoose.Schema({
 // Indeksi per kerkim me te shpejte
 wishlistSchema.index({ userId: 1 });
 
-module.exports = mongoose.model('Wishlist', wishlistSchema);
+export default mongoose.model('Wishlist', wishlistSchema);
