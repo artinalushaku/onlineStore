@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/Home/HomePage';
+import CategoryList from './components/Categories/CategoryList';
+import CategoryDetails from './components/Categories/CategoryDetails';
 
 function App() {
   return (
@@ -8,6 +10,8 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/categories" element={<CategoryList />} />
+          <Route path="/category/:id" element={<CategoryDetails />} />
         </Routes>
       </div>
     </Router>
