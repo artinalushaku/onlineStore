@@ -1,31 +1,21 @@
-import express from 'express';
-import wishlistController from '../controllers/wishlist.controller.js';
-import authMiddleware from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const wishlistController = require('../controllers/wishlist.controller');
+const authMiddleware = require('../middleware/auth.middleware');
 
-// Marrja e listes se deshirave te perdoruesit
-router.get('/',
-  authMiddleware.protect,
-  wishlistController.getUserWishlist
-);
+// Merr listën e dëshirave të përdoruesit
+router.get('/', authMiddleware.protect, wishlistController.getWishlist);
 
-// Shtimi i nje produkti ne listen e deshirave
-router.post('/',
-  authMiddleware.protect,
-  wishlistController.addToWishlist
-);
+// Merr numrin e artikujve në listën e dëshirave
+router.get('/count', authMiddleware.protect, wishlistController.getWishlistCount);
 
-// Heqja e nje produkti nga lista e deshirave
-router.delete('/:productId',
-  authMiddleware.protect,
-  wishlistController.removeFromWishlist
-);
+// Shton produkt në listën e dëshirave
+router.post('/add/:productId', authMiddleware.protect, wishlistController.addToWishlist);
 
-// Pastrimi i listes se deshirave
-router.delete('/',
-  authMiddleware.protect,
-  wishlistController.clearWishlist
-);
+// Fshin produkt nga lista e dëshirave
+router.delete('/remove/:productId', authMiddleware.protect, wishlistController.removeFromWishlist);
 
-export default router;
+// Fshin të gjithë listën e dëshirave
+router.delete('/clear', authMiddleware.protect, wishlistController.clearWishlist);
+
+module.exports = router;
