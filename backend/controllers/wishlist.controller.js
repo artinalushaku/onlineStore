@@ -1,128 +1,120 @@
-import Wishlist from '../models/mongo/wishlist.model.js';
-import Product from '../models/mysql/product.model.js';
+const Wishlist = require('../models/mongo/wishlist.model');
+const Product = require('../models/mysql/product.model');
 
 // Kontrolluesi i listes se deshirave
 const wishlistController = {
-    // Marrja e listes se deshirave te perdoruesit
-    getUserWishlist: async (req, res) => {
-        try {
-            const userId = req.user.id;
-
-            // Gjejme wishlist-en e perdoruesit
-            let wishlist = await Wishlist.findOne({ userId });
-
-            // Nese nuk ekziston, krijojme nje te re te zbrazet
-            if (!wishlist) {
-                wishlist = new Wishlist({
-                    userId,
-                    items: []
-                });
-                await wishlist.save();
-            }
-
-            return res.status(200).json(wishlist);
-        } catch (error) {
-            console.error('Gabim gjate marrjes se wishlist:', error);
-            return res.status(500).json({ message: 'Gabim ne server gjate marrjes se wishlist' });
-        }
-    },
-
-    // Shtimi i nje produkti ne listen e deshirave
-    addToWishlist: async (req, res) => {
-        try {
-            const { productId } = req.body;
-            const userId = req.user.id;
-
-            // Verifikojme nese produkti ekziston
-            const product = await Product.findByPk(productId);
-            if (!product) {
-                return res.status(404).json({ message: 'Produkti nuk u gjet' });
-            }
-
-            // Gjejme wishlist-en e perdoruesit
-            let wishlist = await Wishlist.findOne({ userId });
-
-            // Nese nuk ekziston, krijojme nje te re
-            if (!wishlist) {
-                wishlist = new Wishlist({
-                    userId,
-                    items: []
-                });
-            }
-
-            // Kontrollojme nese produkti eshte tashme ne wishlist
-            const itemExists = wishlist.items.some(item => item.productId == productId);
-
-            if (itemExists) {
-                return res.status(400).json({ message: 'Produkti eshte tashme ne listen e deshirave' });
-            }
-
-            // Shtojme produktin ne wishlist
-            wishlist.items.push({
-                productId,
-                name: product.name,
-                price: product.price,
-                image: product.images[0] || '',
-                addedAt: new Date()
-            });
-
-            await wishlist.save();
-
-            return res.status(200).json(wishlist);
-        } catch (error) {
-            console.error('Gabim gjate shtimit ne wishlist:', error);
-            return res.status(500).json({ message: 'Gabim ne server gjate shtimit ne wishlist' });
-        }
-    },
-
-    // Heqja e nje produkti nga lista e deshirave
-    removeFromWishlist: async (req, res) => {
-        try {
-            const { productId } = req.params;
-            const userId = req.user.id;
-
-            // Gjejme wishlist-en e perdoruesit
-            const wishlist = await Wishlist.findOne({ userId });
-
-            if (!wishlist) {
-                return res.status(404).json({ message: 'Lista e deshirave nuk u gjet' });
-            }
-
-            // Heqim produktin nga lista
-            wishlist.items = wishlist.items.filter(item => item.productId != productId);
-
-            await wishlist.save();
-
-            return res.status(200).json(wishlist);
-        } catch (error) {
-            console.error('Gabim gjate heqjes nga wishlist:', error);
-            return res.status(500).json({ message: 'Gabim ne server gjate heqjes nga wishlist' });
-        }
-    },
-
-    // Pastrimi i listes se deshirave
-    clearWishlist: async (req, res) => {
-        try {
-            const userId = req.user.id;
-
-            // Gjejme wishlist-en e perdoruesit
-            const wishlist = await Wishlist.findOne({ userId });
-
-            if (!wishlist) {
-                return res.status(404).json({ message: 'Lista e deshirave nuk u gjet' });
-            }
-
-            // Zbrazim listen
-            wishlist.items = [];
-
-            await wishlist.save();
-
-            return res.status(200).json({ message: 'Lista e deshirave u pastrua me sukses' });
-        } catch (error) {
-            console.error('Gabim gjate pastrimit te wishlist:', error);
-            return res.status(500).json({ message: 'Gabim ne server gjate pastrimit te wishlist' });
-        }
+  // Marrja e listes se deshirave te perdoruesit
+  getWishlist: async (req, res) => {
+    try {
+      const wishlist = await Wishlist.findOne({ userId: req.user.id });
+      if (!wishlist) {
+        return res.status(200).json({ items: [] });
+      }
+      return res.status(200).json(wishlist);
+    } catch (error) {
+      console.error('Gabim gjatë marrjes së listës së dëshirave:', error);
+      return res.status(500).json({ message: 'Gabim në server' });
     }
+  },
+  
+  getWishlistCount: async (req, res) => {
+    try {
+      const wishlist = await Wishlist.findOne({ userId: req.user.id });
+      const count = wishlist ? wishlist.items.length : 0;
+      return res.status(200).json({ count });
+    } catch (error) {
+      console.error('Gabim gjatë marrjes së numrit të artikujve:', error);
+      return res.status(500).json({ message: 'Gabim në server' });
+    }
+  },
+  
+  // Shtimi i nje produkti ne listen e deshirave
+  addToWishlist: async (req, res) => {
+    try {
+      const { productId } = req.params;
+      
+      // Merr produktin nga MySQL
+      const product = await Product.findByPk(productId);
+      if (!product) {
+        return res.status(404).json({ message: 'Produkti nuk u gjet' });
+      }
+
+      let wishlist = await Wishlist.findOne({ userId: req.user.id });
+      
+      if (!wishlist) {
+        // Krijo listë të re të dëshirave
+        wishlist = await Wishlist.create({
+          userId: req.user.id,
+          items: [{
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            image: Array.isArray(product.images) ? product.images[0] : (product.images || '')
+          }]
+        });
+      } else {
+        // Kontrollo nëse produkti ekziston tashmë në listë
+        const existingItem = wishlist.items.find(item => item.productId === productId);
+        
+        if (existingItem) {
+          return res.status(400).json({ message: 'Produkti është tashmë në listën e dëshirave' });
+        }
+        
+        // Shto produkt të ri
+        wishlist.items.push({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: Array.isArray(product.images) ? product.images[0] : (product.images || '')
+        });
+        
+        await wishlist.save();
+      }
+
+      return res.status(200).json({ message: 'Produkti u shtua në listën e dëshirave' });
+    } catch (error) {
+      console.error('Gabim gjatë shtimit të produktit:', error);
+      return res.status(500).json({ message: 'Gabim në server' });
+    }
+  },
+  
+  // Heqja e nje produkti nga lista e deshirave
+  removeFromWishlist: async (req, res) => {
+    try {
+      const { productId } = req.params;
+
+      const wishlist = await Wishlist.findOne({ userId: req.user.id });
+      if (!wishlist) {
+        return res.status(404).json({ message: 'Lista e dëshirave nuk u gjet' });
+      }
+
+      wishlist.items = wishlist.items.filter(item => item.productId !== parseInt(productId));
+      await wishlist.save();
+
+      return res.status(200).json({ message: 'Produkti u fshi nga lista e dëshirave' });
+    } catch (error) {
+      console.error('Gabim gjatë fshirjes së produktit:', error);
+      return res.status(500).json({ message: 'Gabim në server' });
+    }
+  },
+  
+  // Pastrimi i listes se deshirave
+  clearWishlist: async (req, res) => {
+    try {
+      const wishlist = await Wishlist.findOne({ userId: req.user.id });
+      if (!wishlist) {
+        return res.status(404).json({ message: 'Lista e dëshirave nuk u gjet' });
+      }
+
+      wishlist.items = [];
+      await wishlist.save();
+
+      return res.status(200).json({ message: 'Lista e dëshirave u pastrua' });
+    } catch (error) {
+      console.error('Gabim gjatë pastrimit të listës së dëshirave:', error);
+      return res.status(500).json({ message: 'Gabim në server' });
+    }
+  }
 };
 
-export default wishlistController;
+module.exports = wishlistController;
