@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import authController from '../controllers/auth.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+import User from '../models/mysql/user.model.js';
+
 const router = express.Router();
-const authController = require('../controllers/auth.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const User = require('../models/mysql/user.model');
 
 // Rrugët e autentifikimit
 router.post('/register', authController.register);
@@ -39,4 +40,4 @@ router.get('/any-admin', authMiddleware.protect, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

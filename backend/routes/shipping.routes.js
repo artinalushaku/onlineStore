@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import shippingController from '../controllers/shipping.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const shippingController = require('../controllers/shipping.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Marrja e te gjitha metodave te dergeses (publike)
 router.get('/', shippingController.getAllShipping);
@@ -33,4 +34,4 @@ router.delete(
   shippingController.deleteShipping
 );
 
-module.exports = router;
+export default router;

@@ -1,6 +1,6 @@
-const User = require('../models/mysql/user.model');
-const jwt = require('jsonwebtoken');
-const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/env');
+import User from '../models/mysql/user.model.js';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/env.js';
 
 // Kontrolluesi i autentikimit
 const authController = {
@@ -199,4 +199,4 @@ const authController = {
   }
 };
 
-module.exports = authController;
+export default authController;

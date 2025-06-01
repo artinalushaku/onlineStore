@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import wishlistController from '../controllers/wishlist.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const wishlistController = require('../controllers/wishlist.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Merr listën e dëshirave të përdoruesit
 router.get('/', authMiddleware.protect, wishlistController.getWishlist);
@@ -18,4 +19,4 @@ router.delete('/remove/:productId', authMiddleware.protect, wishlistController.r
 // Fshin të gjithë listën e dëshirave
 router.delete('/clear', authMiddleware.protect, wishlistController.clearWishlist);
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
-const Review = require('../models/mongo/review.model');
-const Product = require('../models/mysql/product.model');
+import Review from '../models/mongo/review.model.js';
+import Product from '../models/mysql/product.model.js';
 
 // Kontrolluesi i komenteve
 const reviewController = {
@@ -183,4 +183,4 @@ const reviewController = {
   }
 };
 
-module.exports = reviewController;
+export default reviewController;

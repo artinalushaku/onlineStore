@@ -1,7 +1,12 @@
-const express = require('express');
+import express from 'express';
+import upload from '../middleware/upload.middleware.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const router = express.Router();
-const upload = require('../middleware/upload.middleware');
-const path = require('path');
 
 // Rruga për ngarkimin e imazheve
 router.post('/', upload.array('images', 5), (req, res) => {
@@ -32,4 +37,4 @@ router.post('/', upload.array('images', 5), (req, res) => {
     }
 });
 
-module.exports = router; 
+export default router; 

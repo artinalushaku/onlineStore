@@ -1,6 +1,6 @@
-const User = require('../models/mysql/user.model');
-const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize');
+import User from '../models/mysql/user.model.js';
+import bcrypt from 'bcryptjs';
+import { Op } from 'sequelize';
 
 // Kontrolluesi i perdoruesve
 const userController = {
@@ -225,4 +225,4 @@ const userController = {
   }
 };
 
-module.exports = userController;
+export default userController;

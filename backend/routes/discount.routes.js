@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import discountController from '../controllers/discount.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const discountController = require('../controllers/discount.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Validimi i nje kodi zbritjeje (per perdoruesit)
 router.post(
@@ -50,4 +51,4 @@ router.delete(
   discountController.deleteDiscount
 );
 
-module.exports = router;
+export default router;

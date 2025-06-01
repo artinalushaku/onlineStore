@@ -7,15 +7,20 @@ import './models/mysql/user.model.js';
 import './models/mysql/category.model.js';
 import './models/mysql/discount.model.js';
 import './models/mysql/shipping.model.js';
-import './models/mysql/product.model.js'; // Added Product model
-import './models/mysql/order.model.js';   // Add Order model if it exists
-import './models/mysql/orderItem.model.js'; // Add Payment model if it exists
+import './models/mysql/product.model.js';
+import './models/mysql/order.model.js';
+import './models/mysql/orderItem.model.js';
+import './models/mysql/address.model.js';
+import './models/mysql/notification.model.js';
+import './models/mysql/payment.model.js';
+import './models/mysql/country.model.js';
 
 // Import MongoDB models
 import './models/mongo/cart.model.js';
 import './models/mongo/wishlist.model.js';
 import './models/mongo/review.model.js';
 import './models/mongo/notification.model.js';
+import './models/mongo/chat.model.js';
 
 const app = express();
 

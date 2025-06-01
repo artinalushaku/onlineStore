@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/db.mysql');
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/db.mysql.js';
 
 const Notification = sequelize.define('Notification', {
     id: {
@@ -11,7 +11,7 @@ const Notification = sequelize.define('Notification', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'User',
+            model: 'users',
             key: 'id'
         }
     },
@@ -36,7 +36,7 @@ const Notification = sequelize.define('Notification', {
     }
 }, {
     timestamps: true,
-    tableName: 'Notification',
+    tableName: 'notifications',
     underscored: true,
     indexes: [
         {
@@ -51,4 +51,4 @@ Notification.associate = (models) => {
     Notification.belongsTo(models.User, { foreignKey: 'userId' });
 };
 
-module.exports = Notification; 
+export default Notification; 

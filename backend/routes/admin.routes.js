@@ -1,14 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const adminController = require('../controllers/admin.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const discountController = require('../controllers/discount.controller');
-const userController = require('../controllers/user.controller');
-const paymentController = require('../controllers/payment.controller');
-const orderController = require('../controllers/order.controller');
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import adminController from '../controllers/admin.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+import discountController from '../controllers/discount.controller.js';
+import userController from '../controllers/user.controller.js';
+import paymentController from '../controllers/payment.controller.js';
+import orderController from '../controllers/order.controller.js';
 
+const router = express.Router();
 
 // Konfigurimi i multer për ngarkimin e imazheve
 const storage = multer.diskStorage({
@@ -38,9 +38,6 @@ router.get('/categories', adminController.getAllCategories);
 // Rruga për ngarkimin e imazheve
 router.post('/upload', upload.array('images'), adminController.uploadImages);
 
-
-
-
 // Kuponët (Discounts)
 router.get('/coupons', discountController.getAllDiscounts);
 router.post('/coupons', discountController.createDiscount);
@@ -60,4 +57,4 @@ router.get('/payments', paymentController.getAllPayments);
 router.get('/orders', orderController.getAllOrders);
 router.patch('/orders/:id/status', orderController.updateOrderStatus);
 
-module.exports = router; 
+export default router; 

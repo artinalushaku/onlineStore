@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import orderController from '../controllers/order.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const orderController = require('../controllers/order.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Krijimi i nje porosie te re (vetem perdoruesit e identifikuar)
 router.post(
@@ -47,4 +48,4 @@ router.post(
   orderController.cancelOrder
 );
 
-module.exports = router;
+export default router;

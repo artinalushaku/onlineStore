@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import addressController from '../controllers/address.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const addressController = require('../controllers/address.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Të gjitha rrugët kërkojnë autentifikim
 router.use(authMiddleware.protect);
@@ -24,4 +25,4 @@ router.delete('/:id', addressController.deleteAddress);
 // Caktimi i një adrese si të parazgjedhur
 router.put('/:id/default', addressController.setDefaultAddress);
 
-module.exports = router;
+export default router;

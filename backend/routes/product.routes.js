@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import productController from '../controllers/product.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+import uploadMiddleware from '../middleware/upload.middleware.js';
+
 const router = express.Router();
-const productController = require('../controllers/product.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const uploadMiddleware = require('../middleware/upload.middleware');
 
 // Marrja e te gjitha produkteve (publike)
 router.get('/', productController.getAllProducts);
@@ -36,4 +37,4 @@ router.delete(
   productController.deleteProduct
 );
 
-module.exports = router;
+export default router;

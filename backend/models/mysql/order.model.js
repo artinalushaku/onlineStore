@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
-import User from'./user.model.js';
+import User from './user.model.js';
 
 const Order = sequelize.define('Order', {
   id: {

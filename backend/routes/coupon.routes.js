@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import discountController from '../controllers/discount.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const discountController = require('../controllers/discount.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Apply coupon (public endpoint)
 router.post('/apply', discountController.applyCoupon);
@@ -15,4 +16,4 @@ router.post('/', discountController.createDiscount);
 router.put('/:id', discountController.updateDiscount);
 router.delete('/:id', discountController.deleteDiscount);
 
-module.exports = router; 
+export default router; 

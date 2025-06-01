@@ -1,6 +1,6 @@
-const Address = require('../models/mysql/address.model');
-const { Op } = require('sequelize');
-const sequelize = require('../config/db.mysql');
+import Address from '../models/mysql/address.model.js';
+import { Op } from 'sequelize';
+import sequelize from '../config/db.mysql.js';
 
 // Kontrolluesi i adresave
 const addressController = {
@@ -231,4 +231,4 @@ const addressController = {
   }
 };
 
-module.exports = addressController;
+export default addressController;

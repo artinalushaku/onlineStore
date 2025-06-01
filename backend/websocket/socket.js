@@ -1,14 +1,16 @@
-import socketIO from 'socket.io';
+import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env';
 import User from '../models/mysql/user.model';
 import logger from '../utils/logger.utils';
+import { setupChatSocket } from './chat.js';
+import { setupNotificationSocket } from './notification.js';
 
 // Inicializimi i WebSocket
-const initializeSocket = (server) => {
-    const io = socketIO(server, {
+export const setupWebSocket = (app) => {
+    const io = new Server(app, {
         cors: {
-            origin: process.env.FRONTEND_URL || '*',
+            origin: process.env.CLIENT_URL || 'http://localhost:3000',
             methods: ['GET', 'POST'],
             credentials: true
         }
@@ -61,7 +63,11 @@ const initializeSocket = (server) => {
         });
     });
 
+    // Setup chat socket
+    setupChatSocket(io);
+
+    // Setup notification socket
+    setupNotificationSocket(io);
+
     return io;
 };
-
-export default initializeSocket;

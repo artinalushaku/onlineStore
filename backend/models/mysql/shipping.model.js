@@ -19,7 +19,7 @@ const Shipping = sequelize.define('Shipping', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'User',
+      model: 'users',
       key: 'id'
     }
   },
@@ -104,4 +104,4 @@ Shipping.associate = (models) => {
   Shipping.belongsTo(models.User, { foreignKey: 'userId' });
 };
 
-module.exports = Shipping;
+export default Shipping;

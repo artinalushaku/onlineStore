@@ -22,5 +22,4 @@ const connectMongoDB = async () => {
   }
 };
 
-export const MONGO_URI = process.env.MONGO_URI;
-export { connectMongoDB };
+export const MONGO_URI = process.env.MONGO_URI;export { connectMongoDB };

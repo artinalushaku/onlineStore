@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import paymentController from '../controllers/payment.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
+
 const router = express.Router();
-const paymentController = require('../controllers/payment.controller');
-const authMiddleware = require('../middleware/auth.middleware');
 
 // Krijimi i nje sesioni pagese me Stripe
 router.post(
@@ -24,4 +25,4 @@ router.get(
   paymentController.getPaymentDetails
 );
 
-module.exports = router;
+export default router;

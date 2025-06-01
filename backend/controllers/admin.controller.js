@@ -1,5 +1,5 @@
-const Product = require('../models/mysql/product.model');
-const Category = require('../models/mysql/category.model');
+import Product from '../models/mysql/product.model.js';
+import Category from '../models/mysql/category.model.js';
 
 const adminController = {
     // Marrja e të gjitha produkteve
@@ -108,4 +108,4 @@ const adminController = {
     }
 };
 
-module.exports = adminController; 
+export default adminController; 

@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/db.mysql');
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/db.mysql.js';
 
 const Address = sequelize.define('Address', {
   id: {
@@ -11,7 +11,7 @@ const Address = sequelize.define('Address', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'User',
+      model: 'users',
       key: 'id'
     }
   },
@@ -68,4 +68,4 @@ Address.associate = (models) => {
   Address.belongsTo(models.User, { foreignKey: 'userId' });
 };
 
-module.exports = Address; 
+export default Address; 

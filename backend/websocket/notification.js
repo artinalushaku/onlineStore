@@ -1,11 +1,13 @@
-import Notification from '../models/mongo/notification.model';
-import logger from '..utils/logger.utils';
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import User from '../models/mysql/user.model.js';
+import Notification from '../models/mongo/notification.model.js';
+import logger from '../utils/logger.utils.js';
 
 //Sherbimi i njoftimeve
 const notificationService = (io) => {
     //dergimi i nje njoftimi per nje perdorues te veqante
-    const sendToUser = async (userId, title, message, type = 'system', relatedId = null)
-        => {
+    const sendToUser = async (userId, title, message, type = 'system', relatedId = null) => {
         try {
             //ruajm njoftimin ne bazen e te dhenave
             const notification = new Notification({
