@@ -9,17 +9,16 @@ import { Op } from 'sequelize';
 import mongoose from 'mongoose';
 import sequelize from '../../config/db.mysql';
 
-// Order controller
+// Kontrolluesi i porosive
 const orderController = {
-  // Create a new order
+  // Krijimi i nje porosie te re
   createOrder: async (req, res) => {
-    // Use MySQL transaction to ensure data integrity
+    // Perdorim transaksion per MySQL per te siguruar integritet te te dhenave
     const transaction = await sequelize.transaction();
     
     try {
       const {
-        shippingAddress,
-        shippingMethodId,
+        shipping,
         paymentMethod,
         discountCode,
         orderNotes
@@ -27,7 +26,7 @@ const orderController = {
       
       const userId = req.user.id;
       
-      // Find user's cart
+      // Gjejme shporten e perdoruesit
       const cart = await Cart.findOne({ userId });
       
       if (!cart || cart.items.length === 0) {
@@ -35,17 +34,25 @@ const orderController = {
         return res.status(400).json({ message: 'Shporta eshte e zbrazet' });
       }
       
-      // Verify and get shipping method
-      const shippingMethod = await Shipping.findByPk(shippingMethodId);
+      // Verifikojme dhe marrim metoden e dergeses
+      const shippingMethod = await Shipping.findByPk(shipping.method);
       if (!shippingMethod || !shippingMethod.isActive) {
         await transaction.rollback();
         return res.status(404).json({ message: 'Metoda e dergeses nuk u gjet ose nuk eshte aktive' });
       }
       
+      // Verifikojme nese metoda e dergeses eshte e disponueshme per vendin e zgjedhur
+      if (shippingMethod.countries.length > 0 && !shippingMethod.countries.includes(shipping.address.country)) {
+        await transaction.rollback();
+        return res.status(400).json({ 
+          message: 'Metoda e dergeses nuk eshte e disponueshme per vendin e zgjedhur'
+        });
+      }
+      
       let discountAmount = 0;
       let validDiscount = null;
       
-      // Verify discount code if provided
+      // Verifikojme kodin e zbritjes nese eshte i dhene
       if (discountCode) {
         validDiscount = await Discount.findOne({
           where: {
@@ -64,7 +71,7 @@ const orderController = {
         if (validDiscount) {
           const cartTotal = cart.total;
           
-          // Check if minimum purchase is met
+          // Kontrollojme nese plotesohet vlera minimale e blerjes
           if (cartTotal >= validDiscount.minimumPurchase) {
             if (validDiscount.type === 'percentage') {
               discountAmount = (cartTotal * validDiscount.value) / 100;
@@ -72,7 +79,7 @@ const orderController = {
               discountAmount = validDiscount.value;
             }
             
-            // Update discount usage count
+            // Perditesojme numrin e perdorimeve te kodit
             await validDiscount.increment('usageCount', { transaction });
           } else {
             validDiscount = null;
@@ -80,19 +87,34 @@ const orderController = {
         }
       }
       
-      // Calculate order total
+      // Llogarisim totalin e porosise
       const subtotal = cart.total;
       const shippingCost = shippingMethod.price;
-      const total = subtotal + shippingCost - discountAmount;
+      const tax = subtotal * 0.18; // 18% TVSH
+      const total = subtotal + shippingCost + tax - discountAmount;
       
-      // Create the order
+      // Ruajme adresen e dergeses
+      let addressString = JSON.stringify({
+        firstName: shipping.address.firstName,
+        lastName: shipping.address.lastName,
+        address1: shipping.address.address1,
+        address2: shipping.address.address2 || '',
+        city: shipping.address.city,
+        postalCode: shipping.address.postalCode,
+        country: shipping.address.country,
+        phone: shipping.address.phone
+      });
+      
+      // Krijojme porosine
       const order = await Order.create({
         userId,
         status: 'pending',
-        total,
-        shippingAddress,
+        totalAmount: total,
+        subTotal: subtotal,
+        tax: tax,
+        shippingAddress: addressString,
+        billingAddress: addressString, // Perdorim te njejten adrese per faturim
         shippingMethod: shippingMethod.name,
-        shippingCost,
         paymentMethod,
         paymentStatus: 'pending',
         discountCode: validDiscount ? validDiscount.code : null,
@@ -100,7 +122,7 @@ const orderController = {
         orderNotes
       }, { transaction });
       
-      // Create order items and update inventory
+      // Krijojme artikujt e porosise dhe perditesojme inventarin
       for (const item of cart.items) {
         const product = await Product.findByPk(item.productId, { transaction });
         
@@ -109,7 +131,7 @@ const orderController = {
           return res.status(404).json({ message: `Produkti me ID ${item.productId} nuk u gjet` });
         }
         
-        // Check product availability
+        // Kontrollojme disponueshmerine e produktit
         if (product.stock < item.quantity) {
           await transaction.rollback();
           return res.status(400).json({
@@ -117,7 +139,7 @@ const orderController = {
           });
         }
         
-        // Create order item
+        // Krijojme elementin e porosise
         await OrderItem.create({
           orderId: order.id,
           productId: product.id,
@@ -128,22 +150,22 @@ const orderController = {
           productImage: product.images[0] || ''
         }, { transaction });
         
-        // Update inventory
+        // Perditesojme inventarin
         await product.update({
           stock: product.stock - item.quantity
         }, { transaction });
       }
       
-      // Clear user's cart
+      // Pastrojme shporten e perdoruesit
       await Cart.updateOne(
         { userId },
         { $set: { items: [], total: 0 } }
       );
       
-      // Commit the transaction
+      // Perfundojme transaksionin
       await transaction.commit();
       
-      // Return the created order
+      // Kthejme porosine e krijuar
       const createdOrder = await Order.findByPk(order.id, {
         include: [
           { model: OrderItem, as: 'items' },
@@ -153,14 +175,14 @@ const orderController = {
       
       return res.status(201).json(createdOrder);
     } catch (error) {
-      // Rollback the transaction in case of error
+      // Kthejme transaksionin mbrapa ne rast gabimi
       await transaction.rollback();
       console.error('Gabim gjate krijimit te porosise:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate krijimit te porosise' });
     }
   },
   
-  // Get user orders
+  // Marrja e porosive te perdoruesit
   getUserOrders: async (req, res) => {
     try {
       const userId = req.user.id;
@@ -190,27 +212,27 @@ const orderController = {
     }
   },
   
-  // Get all orders (admin only)
+  // Marrja e te gjitha porosive (vetem admin)
   getAllOrders: async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
       
-      // Filters
+      // Filtrat
       const whereClause = {};
       
-      // Filter by status
+      // Filtrim sipas statusit
       if (req.query.status) {
         whereClause.status = req.query.status;
       }
       
-      // Filter by payment method
+      // Filtrim sipas metodes se pageses
       if (req.query.paymentMethod) {
         whereClause.paymentMethod = req.query.paymentMethod;
       }
       
-      // Filter by date
+      // Filtrim sipas dates
       if (req.query.startDate && req.query.endDate) {
         whereClause.createdAt = {
           [Op.between]: [new Date(req.query.startDate), new Date(req.query.endDate)]
@@ -248,14 +270,14 @@ const orderController = {
     }
   },
   
-  // Get a single order by ID
+  // Marrja e nje porosie te vetme
   getOrderById: async (req, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
       const userRole = req.user.role;
       
-      // Find the order
+      // Gjejme porosine
       const order = await Order.findByPk(id, {
         include: [
           { model: OrderItem, as: 'items' },
@@ -267,7 +289,7 @@ const orderController = {
         return res.status(404).json({ message: 'Porosia nuk u gjet' });
       }
       
-      // Verify if user has rights to view this order
+      // Verifikojme nese perdoruesi ka te drejte te shikoje porosine
       if (order.userId !== userId && userRole !== 'admin') {
         return res.status(403).json({ message: 'Ju nuk keni te drejte te shikoni kete porosi' });
       }
@@ -279,7 +301,7 @@ const orderController = {
     }
   },
   
-  // Update order status (admin only)
+  // Perditesimi i statusit te porosise (vetem admin)
   updateOrderStatus: async (req, res) => {
     try {
       const { id } = req.params;
@@ -291,7 +313,7 @@ const orderController = {
         return res.status(404).json({ message: 'Porosia nuk u gjet' });
       }
       
-      // Update order status
+      // Perditesojme statusin e porosise
       await order.update({
         status: status || order.status,
         trackingNumber: trackingNumber || order.trackingNumber
@@ -304,9 +326,9 @@ const orderController = {
     }
   },
   
-  // Cancel an order
+  // Anulimi i nje porosie
   cancelOrder: async (req, res) => {
-    // Use MySQL transaction to ensure data integrity
+    // Perdorim transaksion per MySQL per te siguruar integritet te te dhenave
     const transaction = await sequelize.transaction();
     
     try {
@@ -324,13 +346,13 @@ const orderController = {
         return res.status(404).json({ message: 'Porosia nuk u gjet' });
       }
       
-      // Verify if user has rights to cancel this order
+      // Verifikojme nese perdoruesi ka te drejte te anuloje porosine
       if (order.userId !== userId && userRole !== 'admin') {
         await transaction.rollback();
         return res.status(403).json({ message: 'Ju nuk keni te drejte te anuloni kete porosi' });
       }
       
-      // Verify if order can be cancelled
+      // Verifikojme nese porosia mund te anulohet
       if (order.status === 'shipped' || order.status === 'delivered') {
         await transaction.rollback();
         return res.status(400).json({ message: 'Nuk mund te anulohet nje porosi qe eshte derguar ose dorezuar' });
@@ -341,7 +363,7 @@ const orderController = {
         return res.status(400).json({ message: 'Porosia eshte anuluar tashme' });
       }
       
-      // Return products to inventory
+      // Rikthejme inventarin e produkteve
       for (const item of order.items) {
         const product = await Product.findByPk(item.productId, { transaction });
         
@@ -352,17 +374,17 @@ const orderController = {
         }
       }
       
-      // Change order status
+      // Ndryshojme statusin e porosise
       await order.update({
         status: 'cancelled'
       }, { transaction });
       
-      // Commit the transaction
+      // Perfundojme transaksionin
       await transaction.commit();
       
       return res.status(200).json({ message: 'Porosia u anulua me sukses', order });
     } catch (error) {
-      // Rollback the transaction in case of error
+      // Kthejme transaksionin mbrapa ne rast gabimi
       await transaction.rollback();
       console.error('Gabim gjate anulimit te porosise:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate anulimit te porosise' });
@@ -370,4 +392,4 @@ const orderController = {
   }
 };
 
-export default orderController;
+module.exports = orderController;

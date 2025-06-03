@@ -40,31 +40,32 @@ const productController = {
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
       
-      // Krijojme opsionet e filtrimit
       const whereClause = { isActive: true };
       
-      // Filtrim sipas kategorise
-      if (req.query.category) {
-        whereClause.category = req.query.category;
+      // Filtrim sipas kategorise (prano 'categoryId' si parametër)
+      if (req.query.categoryId) {
+        // Gjej nënkategoritë e kësaj kategorie
+        const subcategories = await Category.findAll({ where: { parent_id: req.query.categoryId } });
+        const subcategoryIds = subcategories.map(cat => cat.id);
+        // Përfshi edhe vetë kategorinë
+        whereClause.categoryId = [req.query.categoryId, ...subcategoryIds];
+      } else if (req.query.category) {
+        whereClause.categoryId = req.query.category;
       }
       
-      // Filtrim sipas markes
-      if (req.query.brand) {
-        whereClause.brand = req.query.brand;
-      }
       
       // Filtrim sipas çmimit
       if (req.query.minPrice && req.query.maxPrice) {
         whereClause.price = {
-          [Op.between]: [req.query.minPrice, req.query.maxPrice]
+          [Op.between]: [parseFloat(req.query.minPrice), parseFloat(req.query.maxPrice)]
         };
       } else if (req.query.minPrice) {
         whereClause.price = {
-          [Op.gte]: req.query.minPrice
+          [Op.gte]: parseFloat(req.query.minPrice)
         };
       } else if (req.query.maxPrice) {
         whereClause.price = {
-          [Op.lte]: req.query.maxPrice
+          [Op.lte]: parseFloat(req.query.maxPrice)
         };
       }
       
@@ -74,13 +75,38 @@ const productController = {
           [Op.like]: `%${req.query.search}%`
         };
       }
+
+      // Logjika e sortimit
+      let order = [['createdAt', 'DESC']]; // default: newest
+      if (req.query.sort) {
+        switch (req.query.sort) {
+          case 'price_asc':
+            order = [['price', 'ASC']];
+            break;
+          case 'price_desc':
+            order = [['price', 'DESC']];
+            break;
+          case 'rating':
+            order = [['rating', 'DESC']];
+            break;
+          case 'newest':
+          default:
+            order = [['createdAt', 'DESC']];
+        }
+      }
       
       // Marrja e te dhenave
       const { count, rows: products } = await Product.findAndCountAll({
         where: whereClause,
+        include: [
+          {
+            model: Category,
+            attributes: ['id', 'name', 'slug']
+          }
+        ],
         limit,
         offset,
-        order: [['createdAt', 'DESC']]
+        order
       });
       
       return res.status(200).json({
@@ -166,4 +192,4 @@ const productController = {
   }
 };
 
-export default productController;
+module.exports = productController;

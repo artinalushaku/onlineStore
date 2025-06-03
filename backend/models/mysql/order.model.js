@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
-import User from './user.model.js';
+
 
 const Order = sequelize.define('Order', {
   id: {
@@ -12,7 +12,7 @@ const Order = sequelize.define('Order', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'User',
       key: 'id'
     }
   },
@@ -20,7 +20,7 @@ const Order = sequelize.define('Order', {
     type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled'),
     defaultValue: 'pending'
   },
-  total: {
+  totalAmount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
@@ -28,13 +28,12 @@ const Order = sequelize.define('Order', {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  shippingMethod: {
-    type: DataTypes.STRING,
+  billingAddress: {
+    type: DataTypes.TEXT,
     allowNull: false
   },
-  shippingCost: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
+  notes: {
+    type: DataTypes.TEXT
   },
   paymentMethod: {
     type: DataTypes.STRING,
@@ -56,14 +55,25 @@ const Order = sequelize.define('Order', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  trackingNumber: {
-    type: DataTypes.STRING,
-    allowNull: true
+  subTotal: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
+  },
+  tax: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0
   }
+}, {
+  timestamps: true,
+  tableName: 'orders',
+  underscored: true
 });
 
-// Relacioni me user
-Order.belongsTo(User, { foreignKey: 'userId' });
-User.hasMany(Order, { foreignKey: 'userId' });
+Order.associate = (models) => {
+  Order.belongsTo(models.User, { foreignKey: 'userId' });
+  Order.hasMany(models.Payment, { foreignKey: 'orderId' });
+  Order.hasOne(models.Shipping, { foreignKey: 'orderId' });
+  Order.hasMany(models.OrderItem, { as: 'items', foreignKey: 'orderId' });
+};
 
-export default Order;
+module.exports = Order;

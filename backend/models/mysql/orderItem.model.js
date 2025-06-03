@@ -2,52 +2,28 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
 import Order from './order.model.js';
 
-const OrderItem = sequelize.define('OrderItem', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+cconst OrderItem = sequelize.define('OrderItem', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   orderId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: Order,
-      key: 'id'
-    }
+    references: { model: 'orders', key: 'id' }
   },
   productId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: 'Products', 
-      key: 'id'
-    }
+    references: { model: 'product', key: 'id' }
   },
-  quantity: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
-  },
-  total: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
-  },
-  productName: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  productImage: {
-    type: DataTypes.STRING,
-    allowNull: true
-  }
+  quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+  price: { type: DataTypes.DECIMAL(10, 2), allowNull: false }
+}, {
+  tableName: 'order_items',
+  timestamps: true
 });
 
-// Relacioni me Order
-Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items' });
-OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
+OrderItem.associate = (models) => {
+  OrderItem.belongsTo(models.Order, { foreignKey: 'orderId' });
+  OrderItem.belongsTo(models.Product, { foreignKey: 'productId' });
+};
 
-export default OrderItem;
+module.exports = OrderItem; 
