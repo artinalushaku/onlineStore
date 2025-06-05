@@ -1,40 +1,87 @@
-import express from 'express';
-import sequelize from './config/db.mysql.js';
-import { connectMongoDB } from './config/db.mongo.js';
+import app from './app';
+import http from 'http';
+import { PORT } from './config/env';
+import sequelize from './config/db.mysql';
+import mongoose from 'mongoose';
+import { MONGO_URI } from './config/db.mongo';
+import initializeSocket from './websocket/socket';
+import notificationService from './websocket/notification';
+import chatService from './websocket/chat';
+import logger from './utils/logger.utils';
 
-// Import MySQL models
-import './models/mysql/user.model.js';
-import './models/mysql/category.model.js';
-import './models/mysql/discount.model.js';
-import './models/mysql/shipping.model.js';
-import './models/mysql/product.model.js';
-import './models/mysql/order.model.js';
-import './models/mysql/orderItem.model.js';
-import './models/mysql/address.model.js';
-import './models/mysql/notification.model.js';
-import './models/mysql/payment.model.js';
-import './models/mysql/country.model.js';
+// Krijimi i serverit HTTP
+const server = http.createServer(app);
 
-// Import MongoDB models
-import './models/mongo/cart.model.js';
-import './models/mongo/wishlist.model.js';
-import './models/mongo/review.model.js';
-import './models/mongo/notification.model.js';
-import './models/mongo/chat.model.js';
+// Inicializimi i WebSocket
+const io = initializeSocket(server);
 
-const app = express();
+// Krijimi i sherbimit te njoftimeve
+const notifications = notificationService(io);
 
-// Connect to MongoDB
-connectMongoDB()
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Krijimi i sherbimit te chat
+chatService(io);
 
-// Sync sequelize models
-sequelize.sync({ alter: true })
-  .then(() => console.log('MySQL Database connected'))
-  .catch(err => console.error('Failed to sync MySQL database:', err));
+// Bejme sherbimet e disponueshem globalisht
+global.notifications = notifications;
+app.set('io', io);
 
-const PORT = 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Lidhja me bazen e te dhenave MySQL
+const connectMySQL = async () => {
+  try {
+    await sequelize.authenticate();
+    logger.info('Lidhja me MySQL u realizua me sukses');
+    
+    // Sinkronizimi i modeleve me bazen e te dhenave (ne zhvillim)
+    if (process.env.NODE_ENV === 'development') {
+      await sequelize.sync({ alter: true });
+      logger.info('Modelet u sinkronizuan me bazen e te dhenave MySQL');
+    }
+  } catch (error) {
+    logger.error(`Gabim gjate lidhjes me MySQL: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+// Lidhja me bazen e te dhenave MongoDB
+const connectMongoDB = async () => {
+  try {
+    await mongoose.connect(MONGO_URI);
+    logger.info('Lidhja me MongoDB u realizua me sukses');
+  } catch (error) {
+    logger.error(`Gabim gjate lidhjes me MongoDB: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+// Nisja e serverit
+const startServer = async () => {
+  try {
+    // Lidhja me bazat e te dhenave
+    await connectMySQL();
+    await connectMongoDB();
+    
+    // Nisja e serverit
+    server.listen(PORT, () => {
+      logger.info(`Serveri eshte duke punuar ne portin ${PORT}`);
+    });
+  } catch (error) {
+    logger.error(`Gabim gjate nisjes se serverit: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+// Nisim serverin
+startServer();
+
+// Trajtimi i sinjaleve te nderprerjes
+process.on('SIGINT', async () => {
+  try {
+    await mongoose.connection.close();
+    await sequelize.close();
+    logger.info('Lidhjet me bazat e te dhenave u mbyllen');
+    process.exit(0);
+  } catch (error) {
+    logger.error(`Gabim gjate mbylljes se lidhjeve me bazat e te dhenave: ${error.message}`);
+    process.exit(1);
+  }
 });

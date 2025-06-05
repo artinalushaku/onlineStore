@@ -1,25 +1,43 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import path from 'path';
-import process from 'process';
+import logger from '../utils/logger.utils';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Konfigurimi i lidhjes me MongoDB
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://erionshahini22:ixBSZS9oaPypfH3R@cluster0.kw7hn3t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
-// Load .env file from backend folder
-dotenv.config({ path: path.join(__dirname, '../.env') });
-
-// MongoDB configuration with Mongoose
-const connectMongoDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI); // Removed deprecated options
-   // console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error.message);
-    process.exit(1);
-  }
+// Opsionet e lidhjes
+const options = {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    // Opsione shtesë për cluster
+    ssl: true,
+    authSource: 'admin',
+    retryWrites: true,
+    w: 'majority'
 };
 
-export const MONGO_URI = process.env.MONGO_URI;export { connectMongoDB };
+// Lidhja me MongoDB
+mongoose.connect(MONGO_URI, options)
+.then(() => {
+    logger.info('Lidhja me MongoDB Atlas u krijua me sukses.');
+})
+.catch(err => {
+    logger.error('Gabim në lidhjen me MongoDB Atlas:', err);
+});
+
+// Trajtimi i lidhjeve të humbura
+mongoose.connection.on('disconnected', () => {
+    logger.warn('Lidhja me MongoDB u humb. Po përpiqem të ristartoj...');
+    setTimeout(() => {
+        mongoose.connect(MONGO_URI, options);
+    }, 5000);
+});
+
+// Trajtimi i gabimeve të lidhjes
+mongoose.connection.on('error', (err) => {
+    logger.error('Gabim në lidhjen me MongoDB:', err);
+});
+
+module.exports = {
+    MONGO_URI,
+    mongoose
+}; 
