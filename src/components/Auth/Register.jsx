@@ -62,8 +62,8 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         Krijo llogari të re
@@ -75,17 +75,17 @@ const Register = () => {
                             <span className="block sm:inline">{error}</span>
                         </div>
                     )}
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <input name="firstName" type="text" required placeholder="Emri" value={formData.firstName} onChange={handleChange} className="input" />
-                        <input name="lastName" type="text" required placeholder="Mbiemri" value={formData.lastName} onChange={handleChange} className="input" />
-                        <input name="email" type="email" required placeholder="Email" value={formData.email} onChange={handleChange} className="input" />
-                        <input name="password" type="password" required placeholder="Fjalëkalimi" value={formData.password} onChange={handleChange} className="input" />
-                        <input name="confirmPassword" type="password" required placeholder="Konfirmo Fjalëkalimin" value={formData.confirmPassword} onChange={handleChange} className="input" />
-                        <input name="phone" type="text" placeholder="Telefoni" value={formData.phone} onChange={handleChange} className="input" />
-                        <input name="address" type="text" placeholder="Adresa" value={formData.address} onChange={handleChange} className="input" />
-                        <input name="city" type="text" placeholder="Qyteti" value={formData.city} onChange={handleChange} className="input" />
-                        <input name="country" type="text" placeholder="Shteti" value={formData.country} onChange={handleChange} className="input" />
-                        <input name="postalCode" type="text" placeholder="Kodi postar" value={formData.postalCode} onChange={handleChange} className="input" />
+                    <div className="rounded-md shadow-sm space-y-4">
+                        <input name="firstName" type="text" required placeholder="Emri" value={formData.firstName} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="lastName" type="text" required placeholder="Mbiemri" value={formData.lastName} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="email" type="email" required placeholder="Email" value={formData.email} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="password" type="password" required placeholder="Fjalëkalimi" value={formData.password} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="confirmPassword" type="password" required placeholder="Konfirmo Fjalëkalimin" value={formData.confirmPassword} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="phone" type="text" placeholder="Telefoni" value={formData.phone} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="address" type="text" placeholder="Adresa" value={formData.address} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="city" type="text" placeholder="Qyteti" value={formData.city} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="country" type="text" placeholder="Shteti" value={formData.country} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
+                        <input name="postalCode" type="text" placeholder="Kodi postar" value={formData.postalCode} onChange={handleChange} className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
                         <button
@@ -101,7 +101,7 @@ const Register = () => {
                 <div className="mt-4 text-center">
                     <p className="text-gray-600">
                     Ke nje llogari?{' '}
-                    <Link to="/login" className="text-primary hover:underline">
+                    <Link to="/login" className="text-primary hover:underline font-medium">
                         Login here!
                     </Link>
                     </p>

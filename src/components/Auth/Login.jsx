@@ -47,11 +47,11 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Hyr në llogarinë tënde
+                        Logohu në llogarinë tënde
                     </h2>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -60,7 +60,7 @@ const Login = () => {
                             <span className="block sm:inline">{error}</span>
                         </div>
                     )}
-                    <div className="rounded-md shadow-sm -space-y-px">
+                    <div className="rounded-md shadow-sm space-y-4">
                         <input
                             name="email"
                             type="email"
@@ -68,7 +68,7 @@ const Login = () => {
                             placeholder="Email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                            className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                         />
                         <input
                             name="password"
@@ -77,7 +77,7 @@ const Login = () => {
                             placeholder="Fjalëkalimi"
                             value={formData.password}
                             onChange={handleChange}
-                            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                            className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                         />
                     </div>
                     <div>
@@ -93,10 +93,10 @@ const Login = () => {
 
                 <div className="mt-4 text-center">
                     <p className="text-gray-600">
-                    Don't have an account?{' '}
-                    <Link to="/register" className="text-primary hover:underline">
-                        Register here
-                    </Link>
+                        Nuk ke llogari?{' '}
+                        <Link to="/register" className="text-primary hover:underline font-medium">
+                            Regjistrohu tani!
+                        </Link>
                     </p>
                 </div>
             </div>
