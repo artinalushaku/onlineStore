@@ -20,7 +20,7 @@ const HomePage = () => {
     const fetchProducts = async () => {
         try {
             const response = await axios.get('/api/products');
-            setProducts(response.data.products);
+            setProducts(Array.isArray(response.data.products) ? response.data.products : []);
             setLoading(false);
         } catch (error) {
             setError('Nuk mund të merren të dhënat e produkteve');
