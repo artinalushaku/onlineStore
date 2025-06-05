@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import logger from '../utils/logger.utils';
+import logger from '../utils/logger.utils.js';
+import { config } from 'dotenv';
+
+// Load environment variables
+config();
 
 // Konfigurimi i lidhjes me MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://erionshahini22:ixBSZS9oaPypfH3R@cluster0.kw7hn3t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
@@ -37,7 +41,5 @@ mongoose.connection.on('error', (err) => {
     logger.error('Gabim në lidhjen me MongoDB:', err);
 });
 
-module.exports = {
-    MONGO_URI,
-    mongoose
-}; 
+export { MONGO_URI };
+export default mongoose; 

@@ -25,7 +25,7 @@ const Category = sequelize.define('Category', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Categories',
+      model: 'categories',
       key: 'id'
     }
   },
@@ -37,10 +37,24 @@ const Category = sequelize.define('Category', {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   }
+}, {
+  tableName: 'categories',
+  timestamps: true,
+  underscored: true
 });
 
 // Self-referencing relationship for subcategories
-Category.hasMany(Category, { foreignKey: 'parent_id', as: 'subcategories' });
-Category.belongsTo(Category, { foreignKey: 'parent_id', as: 'parent' });
+Category.hasMany(Category, { 
+  foreignKey: 'parent_id', 
+  as: 'subcategories',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE'
+});
+Category.belongsTo(Category, { 
+  foreignKey: 'parent_id', 
+  as: 'parent',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE'
+});
 
 export default Category;

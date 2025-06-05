@@ -53,8 +53,14 @@ const Payment = sequelize.define('Payment', {
 });
 
 Payment.associate = (models) => {
-  Payment.belongsTo(models.Order, { foreignKey: 'orderId' });
-  Payment.belongsTo(models.User, { foreignKey: 'userId' });
+  Payment.belongsTo(models.Order, { 
+    foreignKey: 'orderId',
+    targetKey: 'id'
+  });
+  Payment.belongsTo(models.User, { 
+    foreignKey: 'userId',
+    targetKey: 'id'
+  });
 };
 
 export default Payment; 

@@ -1,13 +1,13 @@
-import Order from '../models/mysql/order.model';
-import OrderItem from '../models/mysql/orderItem.model';
-import Product from '../models/mysql/product.model';
-import User from '../models/mysql/user.model';
-import Cart from '../models/mongo/cart.model';
-import Discount from '../models/mysql/discount.model';
-import Shipping from '../models/mysql/shipping.model';
+import Order from '../models/mysql/order.model.js';
+import OrderItem from '../models/mysql/orderItem.model.js';
+import Product from '../models/mysql/product.model.js';
+import User from '../models/mysql/user.model.js';
+import Cart from '../models/mongo/cart.model.js';
+import Discount from '../models/mysql/discount.model.js';
+import Shipping from '../models/mysql/shipping.model.js';
 import { Op } from 'sequelize';
 import mongoose from 'mongoose';
-import sequelize from '../../config/db.mysql';
+import sequelize from '../config/db.mysql.js';
 
 // Kontrolluesi i porosive
 const orderController = {
@@ -392,4 +392,4 @@ const orderController = {
   }
 };
 
-module.exports = orderController;
+export default orderController;

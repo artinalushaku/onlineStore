@@ -5,18 +5,18 @@ import authMiddleware from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 // Marrja e shportes se perdoruesit
-router.get('/', authMiddleware, cartController.getUserCart);
+router.get('/', authMiddleware.protect, cartController.getUserCart);
 
 // Shtimi i produktit ne shporte
-router.post('/add', authMiddleware, cartController.addToCart);
+router.post('/add', authMiddleware.protect, cartController.addToCart);
 
 // Perditesimi i sasise se produktit ne shporte
-router.put('/update', authMiddleware, cartController.updateCartItem);
+router.put('/update', authMiddleware.protect, cartController.updateCartItem);
 
 // Heqja e produktit nga shporta
-router.delete('/remove/:productId', authMiddleware, cartController.removeFromCart);
+router.delete('/remove/:productId', authMiddleware.protect, cartController.removeFromCart);
 
 // Pastrimi i shportes
-router.delete('/clear', authMiddleware, cartController.clearCart);
+router.delete('/clear', authMiddleware.protect, cartController.clearCart);
 
 export default router;

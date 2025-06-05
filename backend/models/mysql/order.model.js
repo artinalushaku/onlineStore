@@ -1,7 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
 
-
 const Order = sequelize.define('Order', {
   id: {
     type: DataTypes.INTEGER,
@@ -12,7 +11,7 @@ const Order = sequelize.define('Order', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'User',
+      model: 'users',
       key: 'id'
     }
   },
@@ -70,10 +69,23 @@ const Order = sequelize.define('Order', {
 });
 
 Order.associate = (models) => {
-  Order.belongsTo(models.User, { foreignKey: 'userId' });
-  Order.hasMany(models.Payment, { foreignKey: 'orderId' });
-  Order.hasOne(models.Shipping, { foreignKey: 'orderId' });
-  Order.hasMany(models.OrderItem, { as: 'items', foreignKey: 'orderId' });
+  Order.belongsTo(models.User, { 
+    foreignKey: 'userId',
+    targetKey: 'id'
+  });
+  Order.hasMany(models.Payment, { 
+    foreignKey: 'orderId',
+    sourceKey: 'id'
+  });
+  Order.hasOne(models.Shipping, { 
+    foreignKey: 'orderId',
+    sourceKey: 'id'
+  });
+  Order.hasMany(models.OrderItem, { 
+    as: 'items', 
+    foreignKey: 'orderId',
+    sourceKey: 'id'
+  });
 };
 
-module.exports = Order;
+export default Order;

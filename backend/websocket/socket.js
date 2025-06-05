@@ -1,10 +1,10 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../config/env';
-import User from '../models/mysql/user.model';
-import logger from '../utils/logger.utils';
+import { JWT_SECRET } from '../config/env.js';
+import User from '../models/mysql/user.model.js';
+import logger from '../utils/logger.utils.js';
 import { setupChatSocket } from './chat.js';
-import { setupNotificationSocket } from './notification.js';
+import notificationService from './notification.js';
 
 // Inicializimi i WebSocket
 export const setupWebSocket = (app) => {
@@ -61,13 +61,46 @@ export const setupWebSocket = (app) => {
         socket.on('disconnect', () => {
             logger.info(`User disconnected: ${socket.user.id}`);
         });
+
+        // Handle get unread notifications
+        socket.on('getUnreadNotifications', async () => {
+            try {
+                const notifications = await notificationService.getUnreadNotifications(socket.user.id);
+                socket.emit('unreadNotifications', notifications);
+            } catch (error) {
+                logger.error(`Error getting unread notifications: ${error.message}`);
+                socket.emit('error', { message: 'Error getting notifications' });
+            }
+        });
+
+        // Handle mark notification as read
+        socket.on('markAsRead', async (notificationId) => {
+            try {
+                const notification = await notificationService.markAsRead(notificationId, socket.user.id);
+                socket.emit('notificationRead', notification);
+            } catch (error) {
+                logger.error(`Error marking notification as read: ${error.message}`);
+                socket.emit('error', { message: 'Error marking notification as read' });
+            }
+        });
+
+        // Handle mark all notifications as read
+        socket.on('markAllAsRead', async () => {
+            try {
+                await notificationService.markAllAsRead(socket.user.id);
+                socket.emit('allNotificationsRead');
+            } catch (error) {
+                logger.error(`Error marking all notifications as read: ${error.message}`);
+                socket.emit('error', { message: 'Error marking all notifications as read' });
+            }
+        });
     });
 
     // Setup chat socket
     setupChatSocket(io);
 
-    // Setup notification socket
-    setupNotificationSocket(io);
+    // Setup notification service
+    const notification = notificationService(io);
 
     return io;
 };

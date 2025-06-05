@@ -11,7 +11,7 @@ const Address = sequelize.define('Address', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'users',
+      model: 'User',
       key: 'id'
     }
   },
@@ -65,7 +65,10 @@ const Address = sequelize.define('Address', {
 
 // Përcakto lidhjet me modelet e tjera
 Address.associate = (models) => {
-  Address.belongsTo(models.User, { foreignKey: 'userId' });
+  Address.belongsTo(models.User, { 
+    foreignKey: 'userId',
+    targetKey: 'id'
+  });
 };
 
 export default Address; 

@@ -222,6 +222,75 @@ const userController = {
       console.error('Gabim gjate rivendosjes se fjalekalimit:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate rivendosjes se fjalekalimit' });
     }
+  },
+
+  // Perditesimi i rolit te perdoruesit (vetem admin)
+  updateUserRole: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      if (!['user', 'admin'].includes(role)) {
+        return res.status(400).json({ message: 'Roli i pavlefshem' });
+      }
+
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ message: 'Perdoruesi nuk u gjet' });
+      }
+
+      await user.update({ role });
+      return res.status(200).json({ message: 'Roli u perditesua me sukses' });
+    } catch (error) {
+      console.error('Gabim gjate perditesimit te rolit:', error);
+      return res.status(500).json({ message: 'Gabim ne server gjate perditesimit te rolit' });
+    }
+  },
+
+  // Perditesimi i statusit te perdoruesit (vetem admin)
+  updateUserStatus: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: 'Statusi i pavlefshem' });
+      }
+
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ message: 'Perdoruesi nuk u gjet' });
+      }
+
+      await user.update({ isActive });
+      return res.status(200).json({ message: 'Statusi u perditesua me sukses' });
+    } catch (error) {
+      console.error('Gabim gjate perditesimit te statusit:', error);
+      return res.status(500).json({ message: 'Gabim ne server gjate perditesimit te statusit' });
+    }
+  },
+
+  // Fshirja e nje perdoruesi (vetem admin)
+  deleteUser: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ message: 'Perdoruesi nuk u gjet' });
+      }
+
+      // Nuk lejojme fshirjen e perdoruesit aktual
+      if (id === req.user.id) {
+        return res.status(400).json({ message: 'Nuk mund te fshish llogarine tende' });
+      }
+
+      await user.destroy();
+      return res.status(200).json({ message: 'Perdoruesi u fshi me sukses' });
+    } catch (error) {
+      console.error('Gabim gjate fshirjes se perdoruesit:', error);
+      return res.status(500).json({ message: 'Gabim ne server gjate fshirjes se perdoruesit' });
+    }
   }
 };
 

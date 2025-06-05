@@ -1,9 +1,7 @@
-import { Server } from 'socket.io';
-import jwt from 'jsonwebtoken';
-import User from '../models/mysql/user.model.js';
-import Chat from '../models/mongo/chat.model.js';
+const jwt = require('jsonwebtoken');
+const User = require('../models/mysql/user.model');
 
-export const setupChatSocket = (io) => {
+module.exports = (io) => {
     io.use(async (socket, next) => {
         try {
             const token = socket.handshake.auth.token;
@@ -20,8 +18,7 @@ export const setupChatSocket = (io) => {
 
             socket.user = user;
             next();
-        } catch (err) {
-            console.error('Socket authentication error:', err.message);
+        } catch (error) {
             next(new Error('Authentication error'));
         }
     });

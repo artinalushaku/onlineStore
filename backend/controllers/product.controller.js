@@ -1,4 +1,6 @@
-import Product from '../models/mysql/product.model';
+import Product from '../models/mysql/product.model.js';
+import Category from '../models/mysql/category.model.js';
+import sequelize from '../config/db.mysql.js';
 import { Op } from 'sequelize';
 
 // Kontrolluesi i produkteve
@@ -192,4 +194,4 @@ const productController = {
   }
 };
 
-module.exports = productController;
+export default productController;

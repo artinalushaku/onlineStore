@@ -1,44 +1,135 @@
-import app from './app';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Determine the path to the .env file
+const envPath = path.join(__dirname, './.env');
+
+// Load environment variables early
+dotenv.config({ path: envPath });
+
+// Set NODE_ENV to development if not set in .env (to enable sync)
+const currentEnv = process.env.NODE_ENV || 'development';
+
+import app from './app.js';
 import http from 'http';
-import { PORT } from './config/env';
-import sequelize from './config/db.mysql';
+// import { PORT } from './config/env.js'; // We are hardcoding the port now
+import sequelize from './config/db.mysql.js';
 import mongoose from 'mongoose';
-import { MONGO_URI } from './config/db.mongo';
-import initializeSocket from './websocket/socket';
-import notificationService from './websocket/notification';
-import chatService from './websocket/chat';
-import logger from './utils/logger.utils';
+import { MONGO_URI } from './config/db.mongo.js';
+import { setupWebSocket } from './websocket/socket.js';
+import notificationService from './websocket/notification.js';
+import { setupChatSocket } from './websocket/chat.js';
+import logger from './utils/logger.utils.js';
+
+// Import all MySQL models
+import Computer from './models/mysql/computer.model.js';
+import Address from './models/mysql/address.model.js';
+import User from './models/mysql/user.model.js';
+import Order from './models/mysql/order.model.js';
+import OrderItem from './models/mysql/orderItem.model.js';
+import Payment from './models/mysql/payment.model.js';
+import Shipping from './models/mysql/shipping.model.js';
+import Country from './models/mysql/country.model.js';
+import Product from './models/mysql/product.model.js';
+import Discount from './models/mysql/discount.model.js';
+import Category from './models/mysql/category.model.js';
+import Notification from './models/mysql/notification.model.js';
+
+// Import all MongoDB models
+import Chat from './models/mongo/chat.model.js';
+import Cart from './models/mongo/cart.model.js';
+import Wishlist from './models/mongo/wishlist.model.js';
+import Review from './models/mongo/review.model.js';
+import MongoNotification from './models/mongo/notification.model.js';
 
 // Krijimi i serverit HTTP
 const server = http.createServer(app);
 
 // Inicializimi i WebSocket
-const io = initializeSocket(server);
+const io = setupWebSocket(server);
 
 // Krijimi i sherbimit te njoftimeve
 const notifications = notificationService(io);
 
 // Krijimi i sherbimit te chat
-chatService(io);
+setupChatSocket(io);
 
 // Bejme sherbimet e disponueshem globalisht
 global.notifications = notifications;
 app.set('io', io);
 
+// Define sync order for MySQL models
+const syncOrder = [
+  User,           // First create users table
+  Category,       // Then categories (self-referencing)
+  Product,        // Then products
+  Country,        // Then countries
+  Address,        // Then addresses (depends on users)
+  Order,          // Then orders (depends on users)
+  OrderItem,      // Then order items (depends on orders and products)
+  Payment,        // Then payments (depends on orders and users)
+  Shipping,       // Then shipping (depends on orders and users)
+  Computer,       // Then computer products
+  Discount,       // Then discounts
+  Notification    // Finally notifications
+];
+
 // Lidhja me bazen e te dhenave MySQL
 const connectMySQL = async () => {
   try {
     await sequelize.authenticate();
-    logger.info('Lidhja me MySQL u realizua me sukses');
+    logger.info('MySQL database connected successfully');
     
-    // Sinkronizimi i modeleve me bazen e te dhenave (ne zhvillim)
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      logger.info('Modelet u sinkronizuan me bazen e te dhenave MySQL');
+    // Force sync in development to create/update tables
+    if (currentEnv === 'development') {
+      try {
+        // Disable foreign key checks temporarily
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
+        
+        // Drop all tables
+        logger.info('Dropping all tables...');
+        await sequelize.drop();
+        logger.info('All tables dropped successfully');
+
+        // Re-enable foreign key checks
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
+
+        // Create tables in correct order
+        logger.info('Creating tables...');
+        for (const model of syncOrder) {
+          try {
+            // Disable foreign key checks before creating each table
+            await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
+            
+            // Create the table
+            await model.sync({ force: true });
+            logger.info(`Created table: ${model.name}`);
+            
+            // Re-enable foreign key checks
+            await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
+          } catch (modelError) {
+            logger.error(`Error creating table ${model.name}:`, modelError);
+            throw modelError;
+          }
+        }
+        
+        logger.info('MySQL database sync completed successfully');
+      } catch (syncError) {
+        // Make sure foreign key checks are re-enabled even if there's an error
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;').catch(() => {});
+        console.error('MySQL database sync error:', syncError);
+        throw syncError;
+      }
     }
   } catch (error) {
-    logger.error(`Gabim gjate lidhjes me MySQL: ${error.message}`);
-    process.exit(1);
+    console.error('MySQL Error:', error);
+    logger.error(`MySQL connection error: ${error.message}`);
+    throw error;
   }
 };
 
@@ -46,26 +137,30 @@ const connectMySQL = async () => {
 const connectMongoDB = async () => {
   try {
     await mongoose.connect(MONGO_URI);
-    logger.info('Lidhja me MongoDB u realizua me sukses');
+    logger.info('MongoDB database connected successfully');
   } catch (error) {
-    logger.error(`Gabim gjate lidhjes me MongoDB: ${error.message}`);
-    process.exit(1);
+    logger.error(`MongoDB connection error: ${error.message}`); // Keep logger error
   }
 };
 
 // Nisja e serverit
 const startServer = async () => {
   try {
-    // Lidhja me bazat e te dhenave
-    await connectMySQL();
-    await connectMongoDB();
+    // logger.info('Connecting to databases...'); // Remove debug log
+    await Promise.all([
+      connectMySQL(),
+      connectMongoDB()
+    ]);
     
-    // Nisja e serverit
-    server.listen(PORT, () => {
-      logger.info(`Serveri eshte duke punuar ne portin ${PORT}`);
+    // Hardcode the application port to 5000 to avoid conflict with MySQL (3306)
+    const appPort = 5000;
+    // console.log(`Attempting to start server on hardcoded port: ${appPort}`); // Remove debug log
+    
+    server.listen(appPort, '127.0.0.1', () => {
+      logger.info(`Server running on port ${appPort} at 127.0.0.1`); // Update log message
     });
   } catch (error) {
-    logger.error(`Gabim gjate nisjes se serverit: ${error.message}`);
+    logger.error(`Server startup error: ${error.message}`); // Keep logger error
     process.exit(1);
   }
 };
@@ -78,10 +173,10 @@ process.on('SIGINT', async () => {
   try {
     await mongoose.connection.close();
     await sequelize.close();
-    logger.info('Lidhjet me bazat e te dhenave u mbyllen');
     process.exit(0);
   } catch (error) {
-    logger.error(`Gabim gjate mbylljes se lidhjeve me bazat e te dhenave: ${error.message}`);
+    logger.error(`Error closing database connections: ${error.message}`); // Keep logger error
     process.exit(1);
   }
 });
+

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../config/env';
-import User from '../models/mysql/user.model';
+import { JWT_SECRET } from '../config/env.js';
+import User from '../models/mysql/user.model.js';
 
 // Middleware per autentikimin
 const authMiddleware = {

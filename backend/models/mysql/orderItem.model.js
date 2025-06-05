@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
 import Order from './order.model.js';
 
-cconst OrderItem = sequelize.define('OrderItem', {
+const OrderItem = sequelize.define('OrderItem', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   orderId: {
     type: DataTypes.INTEGER,
@@ -26,4 +26,4 @@ OrderItem.associate = (models) => {
   OrderItem.belongsTo(models.Product, { foreignKey: 'productId' });
 };
 
-module.exports = OrderItem; 
+export default OrderItem; 

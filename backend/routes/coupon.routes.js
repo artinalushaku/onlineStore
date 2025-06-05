@@ -5,7 +5,7 @@ import authMiddleware from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 // Apply coupon (public endpoint)
-router.post('/apply', discountController.applyCoupon);
+router.post('/apply', discountController.validateDiscount);
 
 // Admin routes
 router.use(authMiddleware.protect);

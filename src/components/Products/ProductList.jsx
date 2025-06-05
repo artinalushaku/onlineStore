@@ -21,6 +21,7 @@ const ProductList = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [error, setError] = useState(null);
 
     const fetchProducts = async () => {
         try {
@@ -29,22 +30,25 @@ const ProductList = () => {
                 page: currentPage,
                 ...filters
             });
-            const response = await axios.get(`/api/products?${queryParams}`);
-            setProducts(response.data.products);
+            const response = await axios.get(`http://127.0.0.1:5000/api/products?${queryParams}`);
+            setProducts(Array.isArray(response.data.products) ? response.data.products : []);
             setTotalPages(response.data.totalPages);
             setLoading(false);
         } catch (error) {
             console.error('Gabim gjatë marrjes së produkteve:', error);
+            setError('Nuk mund të merren të dhënat e produkteve');
             setLoading(false);
         }
     };
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('/api/categories');
-            setCategories(response.data);
+            const response = await axios.get('http://127.0.0.1:5000/api/categories');
+            console.log('Categories API response:', response.data);
+            setCategories(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error('Gabim gjatë marrjes së kategorive:', error);
+            setCategories([]); // Set empty array on error
         }
     };
 
@@ -71,6 +75,25 @@ const ProductList = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Add this helper function at the top of the component
+    const renderCategoryOptions = () => {
+        if (!Array.isArray(categories)) {
+            console.warn('Categories is not an array:', categories);
+            return <option value="">Të gjitha</option>;
+        }
+        
+        return (
+            <>
+                <option value="">Të gjitha</option>
+                {categories.map(category => (
+                    <option key={category.id || category._id} value={category.id || category._id}>
+                        {category.name}
+                    </option>
+                ))}
+            </>
+        );
+    };
+
     // Advanced Search Dropdown UI
     const AdvancedSearchDropdown = () => (
         <div className="absolute z-20 w-80 mt-2 bg-white border rounded-md shadow-lg p-4">
@@ -93,12 +116,7 @@ const ProductList = () => {
                     onChange={handleFilterChange}
                     className="input w-full"
                 >
-                    <option value="">Të gjitha</option>
-                    {categories.map(category => (
-                        <option key={category.id || category._id} value={category.id || category._id}>
-                            {category.name}
-                        </option>
-                    ))}
+                    {renderCategoryOptions()}
                 </select>
             </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -197,6 +215,7 @@ const ProductList = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
+            {console.log('Current categories state:', categories)}
             <div className="flex flex-col md:flex-row gap-8 relative">
                 {/* Advanced Search Button */}
                 <div className="mb-4 md:mb-0 md:mr-4">
@@ -223,12 +242,7 @@ const ProductList = () => {
                                 onChange={handleFilterChange}
                                 className="input"
                             >
-                                <option value="">Të gjitha</option>
-                                {categories.map(category => (
-                                    <option key={category.id || category._id} value={category.id || category._id}>
-                                        {category.name}
-                                    </option>
-                                ))}
+                                {renderCategoryOptions()}
                             </select>
                         </div>
 
