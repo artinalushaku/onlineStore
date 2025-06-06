@@ -12,13 +12,12 @@ const Navbar = () => {
     const { user } = useAuth();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        setIsLoggedIn(!!token);
-        if (token) {
+        setIsLoggedIn(!!user);
+        if (user) {
             fetchCartCount();
             fetchWishlistCount();
         }
-    }, []);
+    }, [user]);
 
     const fetchCartCount = async () => {
         try {
