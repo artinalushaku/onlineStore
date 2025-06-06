@@ -411,7 +411,7 @@ const ShippingManagement = () => {
                                         </p>
                                         <div className="text-sm text-gray-600">
                                             <span>Vendet: </span>
-                                            {method.countries && method.countries.length > 0 ? (
+                                            {method.countries && Array.isArray(method.countries) && method.countries.length > 0 ? (
                                                 method.countries.length > 3 ? (
                                                     <span>{method.countries.slice(0, 3).join(', ')} +{method.countries.length - 3} të tjera</span>
                                                 ) : (

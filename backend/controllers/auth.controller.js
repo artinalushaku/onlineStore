@@ -34,7 +34,8 @@ const authController = {
         address,
         city,
         country,
-        postalCode
+        postalCode,
+        role: 'customer' // Explicitly set role as customer
       });
       
       // Gjenerojme token
@@ -156,9 +157,14 @@ const authController = {
         postalCode
       });
       
+      // Get the updated user data without password
+      const updatedUser = await User.findByPk(req.user.id, {
+        attributes: { exclude: ['password'] }
+      });
+      
       return res.status(200).json({
         message: 'Profili u përditësua me sukses',
-        user: user.getProfile()
+        user: updatedUser
       });
     } catch (error) {
       console.error('Gabim gjatë përditësimit të profilit:', error);

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 
 const Cart = () => {
-    const { cart, loading, removeFromCart, updateQuantity } = useCart();
+    const { cart, loading, removeFromCart } = useCart();
 
     if (loading) {
         return (
@@ -50,19 +50,7 @@ const Cart = () => {
                                 <h3 className="font-semibold">{item.product.name}</h3>
                                 <p className="text-gray-600">{item.price}€</p>
                                 <div className="flex items-center mt-2">
-                                    <button
-                                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                        className="px-2 py-1 border rounded-md"
-                                    >
-                                        -
-                                    </button>
-                                    <span className="mx-4">{item.quantity}</span>
-                                    <button
-                                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                        className="px-2 py-1 border rounded-md"
-                                    >
-                                        +
-                                    </button>
+                                    <span className="mx-4">Sasia: {item.quantity}</span>
                                 </div>
                             </div>
                             <div className="text-right">

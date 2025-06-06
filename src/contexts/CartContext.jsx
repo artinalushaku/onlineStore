@@ -4,8 +4,13 @@ import axios from 'axios';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = useState({ items: [], total: 0 });
     const [loading, setLoading] = useState(true);
+
+    // Calculate total whenever cart items change
+    const calculateTotal = (items) => {
+        return items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+    };
 
     useEffect(() => {
         fetchCart();
@@ -18,10 +23,18 @@ export const CartProvider = ({ children }) => {
                 const response = await axios.get('/api/cart', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                setCart(response.data.items);
+                
+                // Assuming the API returns { items: [...] } or just [...]
+                const items = response.data.items || response.data || [];
+                const total = calculateTotal(items);
+                
+                setCart({ items, total });
+            } else {
+                setCart({ items: [], total: 0 });
             }
         } catch (error) {
             console.error('Gabim gjatë marrjes së shportës:', error);
+            setCart({ items: [], total: 0 });
         } finally {
             setLoading(false);
         }
@@ -39,7 +52,11 @@ export const CartProvider = ({ children }) => {
                 { productId, quantity },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            setCart(response.data.items);
+            
+            const items = response.data.items || response.data || [];
+            const total = calculateTotal(items);
+            
+            setCart({ items, total });
             return { success: true };
         } catch (error) {
             return { success: false, error: error.response?.data?.message || 'Gabim gjatë shtimit në shportë' };
@@ -56,7 +73,11 @@ export const CartProvider = ({ children }) => {
             const response = await axios.delete(`/api/cart/remove/${productId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setCart(response.data.items);
+            
+            const items = response.data.items || response.data || [];
+            const total = calculateTotal(items);
+            
+            setCart({ items, total });
             return { success: true };
         } catch (error) {
             return { success: false, error: error.response?.data?.message || 'Gabim gjatë heqjes nga shporta' };
@@ -75,7 +96,11 @@ export const CartProvider = ({ children }) => {
                 { quantity },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            setCart(response.data.items);
+            
+            const items = response.data.items || response.data || [];
+            const total = calculateTotal(items);
+            
+            setCart({ items, total });
             return { success: true };
         } catch (error) {
             return { success: false, error: error.response?.data?.message || 'Gabim gjatë përditësimit të sasisë' };
@@ -92,11 +117,16 @@ export const CartProvider = ({ children }) => {
             await axios.delete('/api/cart/clear', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setCart([]);
+            
+            setCart({ items: [], total: 0 });
             return { success: true };
         } catch (error) {
             return { success: false, error: error.response?.data?.message || 'Gabim gjatë pastrimit të shportës' };
         }
+    };
+
+    const getCartItemsCount = () => {
+        return cart.items.reduce((count, item) => count + item.quantity, 0);
     };
 
     return (
@@ -106,7 +136,9 @@ export const CartProvider = ({ children }) => {
             addToCart,
             removeFromCart,
             updateQuantity,
-            clearCart
+            clearCart,
+            getCartItemsCount,
+            fetchCart
         }}>
             {children}
         </CartContext.Provider>
@@ -119,4 +151,4 @@ export const useCart = () => {
         throw new Error('useCart duhet të përdoret brenda CartProvider');
     }
     return context;
-}; 
+};

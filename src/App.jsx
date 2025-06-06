@@ -95,7 +95,7 @@ function App() {
         <Router>
           <div className="min-h-screen bg-gray-50">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
@@ -112,6 +112,7 @@ function App() {
                 <Route path="/admin/*" element={<AdminRoutes />} />
                 <Route path="/user/*" element={<UserRoutes />} />
                 <Route path="/advanced-search" element={<AdvancedSearch />} />
+                <Route path="/recommendations" element={<ProductRecommendations />} />
                 <Route path="/profile" element={
                   <ProtectedRoute allowedRoles={['customer', 'admin']}>
                     <UserProfile />

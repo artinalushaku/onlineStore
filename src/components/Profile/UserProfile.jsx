@@ -27,17 +27,19 @@ const UserProfile = () => {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
+            const userData = response.data.user;
             setFormData(prev => ({
                 ...prev,
-                firstName: response.data.firstName,
-                lastName: response.data.lastName,
-                email: response.data.email,
-                phone: response.data.phone || '',
-                address: response.data.address || ''
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                phone: userData.phone || '',
+                address: userData.address || ''
             }));
             setLoading(false);
         } catch (error) {
             console.error('Gabim gjatë marrjes së profilit:', error);
+            setError('Nuk mund të merren të dhënat e profilit. Ju lutemi provoni përsëri.');
             setLoading(false);
         }
     };
@@ -53,7 +55,7 @@ const UserProfile = () => {
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(
+            const response = await axios.put(
                 '/api/auth/profile',
                 {
                     firstName: formData.firstName,
@@ -67,15 +69,28 @@ const UserProfile = () => {
                     }
                 }
             );
+            
+            // Update the form data with the response
+            const userData = response.data.user;
+            setFormData(prev => ({
+                ...prev,
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                phone: userData.phone || '',
+                address: userData.address || ''
+            }));
+            
             setMessage({
                 type: 'success',
-                text: 'Profili u përditësua me sukses'
+                text: response.data.message || 'Profili u përditësua me sukses'
             });
-            fetchUserProfile();
+            setEditMode(false);
         } catch (error) {
+            console.error('Gabim gjatë përditësimit të profilit:', error);
             setMessage({
                 type: 'error',
-                text: 'Gabim gjatë përditësimit të profilit'
+                text: error.response?.data?.message || 'Gabim gjatë përditësimit të profilit'
             });
         }
     };
@@ -131,29 +146,34 @@ const UserProfile = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8">Profili Im</h1>
-
-                {message.text && (
-                    <div
-                        className={`p-4 rounded-lg mb-6 ${
-                            message.type === 'success'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                        }`}
-                    >
-                        {message.text}
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+                        <h1 className="text-2xl font-bold text-white">Profili Im</h1>
                     </div>
-                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <div className="bg-white rounded-lg shadow-md p-6">
-                            <h2 className="text-xl font-semibold mb-6">
-                                Informacionet Personale
-                            </h2>
-                            <form onSubmit={handleProfileUpdate}>
-                                <div className="grid grid-cols-2 gap-4 mb-4">
+                    {error && (
+                        <div className="p-4 bg-red-50 text-red-800 border-l-4 border-red-500">
+                            {error}
+                        </div>
+                    )}
+
+                    {message.text && (
+                        <div
+                            className={`p-4 ${
+                                message.type === 'success'
+                                    ? 'bg-green-50 text-green-800 border-l-4 border-green-500'
+                                    : 'bg-red-50 text-red-800 border-l-4 border-red-500'
+                            }`}
+                        >
+                            {message.text}
+                        </div>
+                    )}
+
+                    <div className="p-6">
+                        <form onSubmit={handleProfileUpdate}>
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Emri
@@ -164,7 +184,11 @@ const UserProfile = () => {
                                             value={formData.firstName}
                                             onChange={handleInputChange}
                                             required
-                                            className="input"
+                                            className={`w-full px-4 py-2 rounded-lg border ${
+                                                editMode 
+                                                    ? 'border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500' 
+                                                    : 'border-gray-200 bg-gray-50'
+                                            }`}
                                             disabled={!editMode}
                                         />
                                     </div>
@@ -178,13 +202,17 @@ const UserProfile = () => {
                                             value={formData.lastName}
                                             onChange={handleInputChange}
                                             required
-                                            className="input"
+                                            className={`w-full px-4 py-2 rounded-lg border ${
+                                                editMode 
+                                                    ? 'border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500' 
+                                                    : 'border-gray-200 bg-gray-50'
+                                            }`}
                                             disabled={!editMode}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Email
                                     </label>
@@ -192,11 +220,11 @@ const UserProfile = () => {
                                         type="email"
                                         value={formData.email}
                                         disabled
-                                        className="input bg-gray-50"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-50"
                                     />
                                 </div>
 
-                                <div className="mb-6">
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Telefon
                                     </label>
@@ -205,11 +233,16 @@ const UserProfile = () => {
                                         name="phone"
                                         value={formData.phone}
                                         onChange={handleInputChange}
-                                        className="input"
+                                        className={`w-full px-4 py-2 rounded-lg border ${
+                                            editMode 
+                                                ? 'border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500' 
+                                                : 'border-gray-200 bg-gray-50'
+                                        }`}
                                         disabled={!editMode}
                                     />
                                 </div>
-                                <div className="mb-6">
+
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Adresa
                                     </label>
@@ -218,92 +251,44 @@ const UserProfile = () => {
                                         name="address"
                                         value={formData.address}
                                         onChange={handleInputChange}
-                                        className="input"
+                                        className={`w-full px-4 py-2 rounded-lg border ${
+                                            editMode 
+                                                ? 'border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500' 
+                                                : 'border-gray-200 bg-gray-50'
+                                        }`}
                                         disabled={!editMode}
                                     />
                                 </div>
-                                {editMode ? (
-                                    <div className="flex gap-2">
-                                        <button
-                                            type="submit"
-                                            className="w-full bg-primary text-white py-2 rounded hover:bg-primary-dark"
-                                        >
-                                            Ruaj Ndryshimet
-                                        </button>
+
+                                <div className="flex justify-end space-x-4">
+                                    {editMode ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setEditMode(false); fetchUserProfile(); }}
+                                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                            >
+                                                Anulo
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                            >
+                                                Ruaj Ndryshimet
+                                            </button>
+                                        </>
+                                    ) : (
                                         <button
                                             type="button"
-                                            className="w-full bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300"
-                                            onClick={() => { setEditMode(false); fetchUserProfile(); }}
+                                            onClick={() => setEditMode(true)}
+                                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                         >
-                                            Anulo
+                                            Ndrysho
                                         </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-                                        onClick={() => setEditMode(true)}
-                                    >
-                                        Ndrysho
-                                    </button>
-                                )}
-                            </form>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="bg-white rounded-lg shadow-md p-6">
-                            <h2 className="text-xl font-semibold mb-6">
-                                Ndrysho Fjalëkalimin
-                            </h2>
-                            <form onSubmit={handlePasswordChange}>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Fjalëkalimi Aktual
-                                    </label>
-                                    <input
-                                        type="password"
-                                        name="currentPassword"
-                                        value={formData.currentPassword}
-                                        onChange={handleInputChange}
-                                        required
-                                        className="input"
-                                    />
+                                    )}
                                 </div>
-
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Fjalëkalimi i Ri
-                                    </label>
-                                    <input
-                                        type="password"
-                                        name="newPassword"
-                                        value={formData.newPassword}
-                                        onChange={handleInputChange}
-                                        required
-                                        className="input"
-                                    />
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Konfirmo Fjalëkalimin e Ri
-                                    </label>
-                                    <input
-                                        type="password"
-                                        name="confirmPassword"
-                                        value={formData.confirmPassword}
-                                        onChange={handleInputChange}
-                                        required
-                                        className="input"
-                                    />
-                                </div>
-
-                                <button type="submit" className="btn btn-primary w-full">
-                                    Ndrysho Fjalëkalimin
-                                </button>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

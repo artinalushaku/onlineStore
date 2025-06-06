@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FaSearch } from 'react-icons/fa';
 
 const AdvancedSearch = () => {
     const navigate = useNavigate();
@@ -32,13 +33,17 @@ const AdvancedSearch = () => {
         try {
             const params = new URLSearchParams();
             Object.entries(filters).forEach(([key, value]) => {
-                if (value !== '' && value !== false) {
+                if (
+                    (key === 'minPrice' || key === 'maxPrice')
+                        ? value !== '' && !isNaN(Number(value))
+                        : value !== '' && value !== false
+                ) {
                     params.append(key, value);
                 }
             });
 
-            const response = await axios.get(`/api/search?${params}`);
-            setResults(response.data);
+            const response = await axios.get(`/api/products?${params}`);
+            setResults(response.data.products || []);
         } catch (error) {
             console.error('Gabim gjatë kërkimit:', error);
         } finally {
@@ -49,7 +54,7 @@ const AdvancedSearch = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <form onSubmit={handleSearch} className="mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Kërko
@@ -175,13 +180,13 @@ const AdvancedSearch = () => {
                         </label>
                     </div>
                 </div>
-
-                <div className="mt-6">
+                <div className="mt-6 flex justify-end">
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full md:w-auto bg-primary text-white py-2 px-6 rounded hover:bg-primary-dark transition-colors disabled:opacity-50"
+                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 px-8 rounded-lg text-lg font-semibold shadow hover:bg-indigo-700 transition-colors disabled:opacity-50"
                     >
+                        <FaSearch />
                         {loading ? 'Po Kërkohet...' : 'Kërko'}
                     </button>
                 </div>
@@ -189,56 +194,71 @@ const AdvancedSearch = () => {
 
             {results.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {results.map(product => (
-                        <div
-                            key={product.id}
-                            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                        >
-                            <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                className="w-full h-48 object-cover"
-                            />
-                            <div className="p-4">
-                                <h3 className="text-lg font-semibold mb-2">
-                                    {product.name}
-                                </h3>
-                                <div className="flex items-center mb-2">
-                                    <span className="text-yellow-500">
-                                        {'★'.repeat(Math.floor(product.rating))}
-                                        {'☆'.repeat(5 - Math.floor(product.rating))}
-                                    </span>
-                                    <span className="text-sm text-gray-600 ml-2">
-                                        ({product.reviewCount})
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        {product.discount ? (
-                                            <>
-                                                <span className="text-lg font-bold text-primary">
-                                                    {product.discountPrice}€
-                                                </span>
-                                                <span className="text-sm text-gray-500 line-through ml-2">
+                    {results.map(product => {
+                        let imageSrc = product.image;
+                        if (!imageSrc) {
+                            if (Array.isArray(product.images)) {
+                                imageSrc = product.images[0];
+                            } else if (typeof product.images === 'string') {
+                                try {
+                                    const arr = JSON.parse(product.images);
+                                    imageSrc = Array.isArray(arr) ? arr[0] : product.images;
+                                } catch {
+                                    imageSrc = product.images;
+                                }
+                            }
+                        }
+                        return (
+                            <div
+                                key={product.id}
+                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                            >
+                                <img
+                                    src={imageSrc}
+                                    alt={product.name}
+                                    className="w-full h-48 object-cover"
+                                />
+                                <div className="p-4">
+                                    <h3 className="text-lg font-semibold mb-2">
+                                        {product.name}
+                                    </h3>
+                                    <div className="flex items-center mb-2">
+                                        <span className="text-yellow-500">
+                                            {'★'.repeat(Math.floor(product.rating))}
+                                            {'☆'.repeat(5 - Math.floor(product.rating))}
+                                        </span>
+                                        <span className="text-sm text-gray-600 ml-2">
+                                            ({product.reviewCount})
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            {product.discount ? (
+                                                <>
+                                                    <span className="text-lg font-bold text-primary">
+                                                        {product.discountPrice}€
+                                                    </span>
+                                                    <span className="text-sm text-gray-500 line-through ml-2">
+                                                        {product.price}€
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <span className="text-lg font-bold">
                                                     {product.price}€
                                                 </span>
-                                            </>
-                                        ) : (
-                                            <span className="text-lg font-bold">
-                                                {product.price}€
-                                            </span>
-                                        )}
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => navigate(`/products/${product.id}`)}
+                                            className="text-primary hover:underline"
+                                        >
+                                            Shiko Detajet
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => navigate(`/products/${product.id}`)}
-                                        className="text-primary hover:underline"
-                                    >
-                                        Shiko Detajet
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 

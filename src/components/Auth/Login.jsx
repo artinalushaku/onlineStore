@@ -47,12 +47,15 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-3xl shadow-2xl z-10">
                 <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Logohu në llogarinë tënde
+                    <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
+                        Mirësevini Sërish!
                     </h2>
+                    <p className="mt-2 text-center text-sm text-gray-600">
+                        Logohu në llogarinë tënde për të vazhduar
+                    </p>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     {error && (
@@ -61,40 +64,51 @@ const Login = () => {
                         </div>
                     )}
                     <div className="rounded-md shadow-sm space-y-4">
-                        <input
-                            name="email"
-                            type="email"
-                            required
-                            placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                        />
-                        <input
-                            name="password"
-                            type="password"
-                            required
-                            placeholder="Fjalëkalimi"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                        />
+                        <div>
+                            <label htmlFor="email" className="sr-only">Email address</label>
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                autoComplete="email"
+                                required
+                                placeholder="Adresa e Email-it"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="sr-only">Password</label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                                placeholder="Fjalëkalimi"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                            />
+                        </div>
                     </div>
+
                     <div>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
                         >
                             {loading ? "Duke u kyçur..." : "Kyçu"}
                         </button>
                     </div>
                 </form>
 
-                <div className="mt-4 text-center">
-                    <p className="text-gray-600">
+                <div className="text-center">
+                    <p className="text-sm text-gray-600">
                         Nuk ke llogari?{' '}
-                        <Link to="/register" className="text-primary hover:underline font-medium">
+                        <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200">
                             Regjistrohu tani!
                         </Link>
                     </p>
@@ -104,4 +118,4 @@ const Login = () => {
     );
 };
 
-export default Login; 
+export default Login;

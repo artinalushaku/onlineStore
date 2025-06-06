@@ -85,43 +85,16 @@ const connectMySQL = async () => {
     await sequelize.authenticate();
     logger.info('MySQL database connected successfully');
     
-    // Force sync in development to create/update tables
+    // Safe sync in development to avoid data loss
     if (currentEnv === 'development') {
       try {
-        // Disable foreign key checks temporarily
-        await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
-        
-        // Drop all tables
-        logger.info('Dropping all tables...');
-        await sequelize.drop();
-        logger.info('All tables dropped successfully');
-
-        // Re-enable foreign key checks
-        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
-
-        // Create tables in correct order
-        logger.info('Creating tables...');
+        // Just sync models without force (does not drop tables)
         for (const model of syncOrder) {
-          try {
-            // Disable foreign key checks before creating each table
-            await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
-            
-            // Create the table
-            await model.sync({ force: true });
-            logger.info(`Created table: ${model.name}`);
-            
-            // Re-enable foreign key checks
-            await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
-          } catch (modelError) {
-            logger.error(`Error creating table ${model.name}:`, modelError);
-            throw modelError;
-          }
+          await model.sync();
+          logger.info(`Synced table: ${model.name}`);
         }
-        
         logger.info('MySQL database sync completed successfully');
       } catch (syncError) {
-        // Make sure foreign key checks are re-enabled even if there's an error
-        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;').catch(() => {});
         console.error('MySQL database sync error:', syncError);
         throw syncError;
       }

@@ -62,70 +62,97 @@ const HomePage = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="min-h-screen bg-gray-50">
             {/* Hero Section */}
-            <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-24 mb-16 rounded-lg shadow-xl">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 animate-fade-in-up">
-                        Mirësevini në Dyqanin Tonë Online
-                    </h1>
-                    <p className="text-xl opacity-90 mb-10 animate-fade-in-up delay-200">
-                        Zbuloni koleksionin tonë të produkteve të cilësisë së lartë me çmime të përballueshme
-                    </p>
-                    <Link
-                        to="/products"
-                        className="inline-block bg-white text-blue-700 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-100 transition duration-300 animate-fade-in-up delay-400"
-                    >
-                        Shiko Produktet
-                    </Link>
+            <section className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white py-32 mb-20 overflow-hidden">
+                <div className="absolute inset-0 bg-black opacity-20"></div>
+                <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10"></div>
+                <div className="container mx-auto px-4 relative z-10">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-8 animate-fade-in-up">
+                            Mirësevini në Dyqanin Tonë Online
+                        </h1>
+                        <p className="text-2xl opacity-90 mb-12 animate-fade-in-up delay-200 max-w-2xl mx-auto">
+                            Zbuloni koleksionin tonë të produkteve të cilësisë së lartë me çmime të përballueshme
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
+                            <Link
+                                to="/products"
+                                className="inline-block bg-white text-indigo-600 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-100 transition duration-300 transform hover:scale-105"
+                            >
+                                Shiko Produktet
+                            </Link>
+                            <Link
+                                to="/categories"
+                                className="inline-block bg-transparent border-2 border-white text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-indigo-600 transition duration-300 transform hover:scale-105"
+                            >
+                                Shfletoni Kategoritë
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            {/* Categories Section (Add a heading or context if needed) */}
-            <section className="mb-16">
-                {/* Assuming CategoryList component has its own internal styling */}
-                {/* <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Shfletoni sipas Kategorive</h2> */}
-                <CategoryList />
+            {/* Categories Section */}
+            <section className="container mx-auto px-4 mb-20">
+                <h2 className="text-4xl font-bold text-gray-800 mb-12 text-center">
+                    Shfletoni sipas Kategorive
+                </h2>
+                <div className="bg-white rounded-2xl shadow-xl p-8">
+                    <CategoryList />
+                </div>
             </section>
 
             {/* Featured Products Section */}
-            <section className="mb-16">
-                <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-800">Produktet e Fundit</h2>
-                    <Link to="/products" className="text-blue-600 hover:underline font-semibold">
+            <section className="container mx-auto px-4 mb-20">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-12">
+                    <h2 className="text-4xl font-bold text-gray-800 mb-4 sm:mb-0">Produktet e Fundit</h2>
+                    <Link 
+                        to="/products" 
+                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-semibold group"
+                    >
                         Shiko të Gjitha Produktet
+                        <svg className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
                     </Link>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {/* Render only a limited number of products, e.g., first 8 */}
                     {products.slice(0, 8).map(product => (
-                        <ProductCard key={product.id} product={product} />
+                        <div key={product.id} className="transform hover:scale-105 transition-transform duration-300">
+                            <ProductCard product={product} />
+                        </div>
                     ))}
                 </div>
             </section>
 
             {/* Special Offers Section */}
-            <section className="bg-gradient-to-r from-teal-500 to-green-600 text-white py-20 rounded-lg shadow-xl">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6">Oferta Speciale</h2>
-                    <p className="text-xl opacity-90 mb-10">
-                        Regjistrohu për të marrë njoftime për ofertat tona speciale dhe zbritjet ekskluzive
-                    </p>
-                    {user ? (
-                        <Link
-                            to="/profile"
-                            className="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-bold text-lg shadow hover:bg-gray-100 transition duration-300"
-                        >
-                            Shiko Profilin
-                        </Link>
-                    ) : (
-                        <Link
-                            to="/register"
-                            className="inline-block bg-white text-green-700 px-8 py-3 rounded-full font-bold text-lg shadow hover:bg-gray-100 transition duration-300"
-                        >
-                            Regjistrohu Tani
-                        </Link>
-                    )}
+            <section className="relative bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-24 mb-20 overflow-hidden">
+                <div className="absolute inset-0 bg-black opacity-10"></div>
+                <div className="container mx-auto px-4 relative z-10">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-8">Oferta Speciale</h2>
+                        <p className="text-xl opacity-90 mb-12 max-w-2xl mx-auto">
+                            Regjistrohu për të marrë njoftime për ofertat tona speciale dhe zbritjet ekskluzive
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            {user ? (
+                                <Link
+                                    to="/profile"
+                                    className="inline-block bg-white text-emerald-600 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-100 transition duration-300 transform hover:scale-105"
+                                >
+                                    Shiko Profilin
+                                </Link>
+                            ) : (
+                                <Link
+                                    to="/register"
+                                    className="inline-block bg-white text-emerald-600 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-100 transition duration-300 transform hover:scale-105"
+                                >
+                                    Regjistrohu Tani
+                                </Link>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>

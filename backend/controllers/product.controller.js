@@ -44,6 +44,9 @@ const productController = {
       
       const whereClause = { isActive: true };
       
+      // Debug: log all query params
+      console.log('Product filter query:', req.query);
+
       // Filtrim sipas kategorise (prano 'categoryId' si parametër)
       if (req.query.categoryId) {
         // Gjej nënkategoritë e kësaj kategorie
@@ -54,7 +57,6 @@ const productController = {
       } else if (req.query.category) {
         whereClause.categoryId = req.query.category;
       }
-      
       
       // Filtrim sipas çmimit
       if (req.query.minPrice && req.query.maxPrice) {
@@ -71,10 +73,11 @@ const productController = {
         };
       }
       
-      // Kerkim sipas emrit
-      if (req.query.search) {
+      // Kerkim sipas emrit (support both 'query' and 'search')
+      const searchTerm = req.query.query || req.query.search;
+      if (searchTerm) {
         whereClause.name = {
-          [Op.like]: `%${req.query.search}%`
+          [Op.like]: `%${searchTerm}%`
         };
       }
 

@@ -26,7 +26,7 @@ const UserManagement = () => {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setUsers(response.data);
+            setUsers(response.data.users);
             setLoading(false);
         } catch (error) {
             console.error('Gabim gjatë marrjes së përdoruesve:', error);
@@ -81,14 +81,15 @@ const UserManagement = () => {
         setSaving(true);
         try {
             // Update user fields
-            await axios.put(`/api/admin/users/${editUser.id}/role`, { role: editForm.role }, {
+            await axios.put(`/api/admin/users/${editUser.id}`, {
+                firstName: editForm.firstName,
+                lastName: editForm.lastName,
+                email: editForm.email,
+                role: editForm.role,
+                isActive: editForm.isActive
+            }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            await axios.put(`/api/admin/users/${editUser.id}/status`, { isActive: editForm.isActive }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            // Optionally, add endpoint for firstName, lastName, email if you want to allow editing those too
-            // await axios.put(`/api/admin/users/${editUser.id}`, { firstName, lastName, email }, ...)
             setEditUser(null);
             setSaving(false);
             fetchUsers();
@@ -158,12 +159,6 @@ const UserManagement = () => {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                     <button
-                                        onClick={() => handleViewDetails(user)}
-                                        className="text-primary-600 hover:text-primary-900"
-                                    >
-                                        Shiko Detajet
-                                    </button>
-                                    <button
                                         onClick={() => handleEditUser(user)}
                                         className="text-blue-600 hover:text-blue-900"
                                     >
@@ -199,7 +194,6 @@ const UserManagement = () => {
                                         value={editForm.firstName}
                                         onChange={handleEditFormChange}
                                         className="w-full px-3 py-2 border rounded-md"
-                                        disabled
                                     />
                                 </div>
                                 <div>
@@ -210,7 +204,6 @@ const UserManagement = () => {
                                         value={editForm.lastName}
                                         onChange={handleEditFormChange}
                                         className="w-full px-3 py-2 border rounded-md"
-                                        disabled
                                     />
                                 </div>
                                 <div>
@@ -221,7 +214,6 @@ const UserManagement = () => {
                                         value={editForm.email}
                                         onChange={handleEditFormChange}
                                         className="w-full px-3 py-2 border rounded-md"
-                                        disabled
                                     />
                                 </div>
                                 <div>
@@ -263,55 +255,6 @@ const UserManagement = () => {
                                     disabled={saving}
                                 >
                                     {saving ? 'Duke ruajtur...' : 'Ruaj Ndryshimet'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Details Modal (unchanged) */}
-            {selectedUser && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                        <div className="mt-3">
-                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                Detajet e Përdoruesit
-                            </h3>
-                            <div className="mt-2 px-7 py-3">
-                                <div className="mb-4">
-                                    <h4 className="font-medium">Emri:</h4>
-                                    <p className="text-sm text-gray-600">{selectedUser.firstName}</p>
-                                </div>
-                                <div className="mb-4">
-                                    <h4 className="font-medium">Mbiemri:</h4>
-                                    <p className="text-sm text-gray-600">{selectedUser.lastName}</p>
-                                </div>
-                                <div className="mb-4">
-                                    <h4 className="font-medium">Email:</h4>
-                                    <p className="text-sm text-gray-600">{selectedUser.email}</p>
-                                </div>
-                                <div className="mb-4">
-                                    <h4 className="font-medium">Roli:</h4>
-                                    <p className="text-sm text-gray-600">{selectedUser.role}</p>
-                                </div>
-                                <div className="mb-4">
-                                    <h4 className="font-medium">Statusi:</h4>
-                                    <p className="text-sm text-gray-600">{selectedUser.isActive ? 'Aktiv' : 'Jo Aktiv'}</p>
-                                </div>
-                                <div className="mb-4">
-                                    <h4 className="font-medium">Data e Regjistrimit:</h4>
-                                    <p className="text-sm text-gray-600">
-                                        {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : ''}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="items-center px-4 py-3">
-                                <button
-                                    onClick={handleCloseDetails}
-                                    className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                                >
-                                    Mbyll
                                 </button>
                             </div>
                         </div>

@@ -74,7 +74,7 @@ const cartController = {
                 }
 
                 cart.items[itemIndex].quantity = newQuantity;
-                cart.items[itemIndex].price = product.price; // Perditesojme �mimin ne rast ndryshimi
+                cart.items[itemIndex].price = product.price; // Perditesojme mimin ne rast ndryshimi
             } else {
                 // Nese produkti nuk eshte ne shporte, e shtojme
                 cart.items.push({
@@ -133,7 +133,7 @@ const cartController = {
 
             // Perditesojme sasine
             cart.items[itemIndex].quantity = quantity;
-            cart.items[itemIndex].price = product.price; // Perditesojme �mimin ne rast ndryshimi
+            cart.items[itemIndex].price = product.price; // Perditesojme mimin ne rast ndryshimi
 
             // Rillogarisim totalin
             cart.total = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -197,6 +197,24 @@ const cartController = {
         } catch (error) {
             console.error('Gabim gjate pastrimit te shportes:', error);
             return res.status(500).json({ message: 'Gabim ne server gjate pastrimit te shportes' });
+        }
+    },
+
+    // Get cart item count
+    getCartCount: async (req, res) => {
+        try {
+            const userId = req.user.id;
+
+            // Find the user's cart
+            const cart = await Cart.findOne({ userId });
+
+            // If cart exists, return the number of items, otherwise return 0
+            const itemCount = cart ? cart.items.length : 0;
+
+            return res.status(200).json({ count: itemCount });
+        } catch (error) {
+            console.error('Gabim gjatë marrjes së numrit të artikujve në shportë:', error);
+            return res.status(500).json({ message: 'Gabim në server gjatë marrjes së numrit të artikujve në shportë' });
         }
     }
 };

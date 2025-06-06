@@ -30,10 +30,6 @@ const Product = sequelize.define('Product', {
     type: DataTypes.JSON, // Array i URL-ve të imazheve
     defaultValue: []
   },
-  category: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
   brand: {
     type: DataTypes.STRING,
     allowNull: true

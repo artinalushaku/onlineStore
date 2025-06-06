@@ -46,6 +46,7 @@ router.delete('/coupons/:id', discountController.deleteDiscount);
 
 // User management endpoints (admin)
 router.get('/users', userController.getAllUsers);
+router.put('/users/:id', userController.updateUser);
 router.put('/users/:id/role', userController.updateUserRole);
 router.put('/users/:id/status', userController.updateUserStatus);
 router.delete('/users/:id', userController.deleteUser);

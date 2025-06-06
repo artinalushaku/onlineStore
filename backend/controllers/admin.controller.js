@@ -18,7 +18,7 @@ const adminController = {
     // Shtimi i produktit të ri
     createProduct: async (req, res) => {
         try {
-            const { name, description, price, stock, categoryId, images, category, sku } = req.body;
+            const { name, description, price, stock, categoryId, images, sku } = req.body;
             const product = await Product.create({
                 name,
                 description,
@@ -26,7 +26,6 @@ const adminController = {
                 stock,
                 categoryId,
                 images: images || [],
-                category,
                 sku
             });
             res.status(201).json(product);
@@ -102,8 +101,7 @@ const adminController = {
             const urls = req.files.map(file => `/uploads/${file.filename}`);
             res.json({ urls });
         } catch (error) {
-            console.error('Gabim gjatë ngarkimit të imazheve:', error);
-            res.status(500).json({ message: 'Gabim në server' });
+            res.status(500).json({ message: 'Gabim gjatë ngarkimit të imazheve:' });
         }
     }
 };

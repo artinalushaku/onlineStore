@@ -20,7 +20,9 @@ const ProductList = () => {
     const [categories, setCategories] = useState([]);
     const [totalPages, setTotalPages] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [searchInput, setSearchInput] = useState(filters.query);
+    const [minPriceInput, setMinPriceInput] = useState(filters.minPrice);
+    const [maxPriceInput, setMaxPriceInput] = useState(filters.maxPrice);
 
     const fetchProducts = async () => {
         try {
@@ -59,6 +61,14 @@ const ProductList = () => {
 
     const handleFilterChange = (e) => {
         const { name, value, type, checked } = e.target;
+        if (name === 'minPrice') {
+            setMinPriceInput(value);
+            return;
+        }
+        if (name === 'maxPrice') {
+            setMaxPriceInput(value);
+            return;
+        }
         setFilters(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
@@ -71,262 +81,220 @@ const ProductList = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Advanced Search Dropdown UI
-    const AdvancedSearchDropdown = () => (
-        <div className="absolute z-20 w-80 mt-2 bg-white border rounded-md shadow-lg p-4">
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kërko</label>
-                <input
-                    type="text"
-                    name="query"
-                    value={filters.query}
-                    onChange={handleFilterChange}
-                    className="input w-full"
-                    placeholder="Shkruaj për të kërkuar..."
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kategoria</label>
-                <select
-                    name="categoryId"
-                    value={filters.categoryId}
-                    onChange={handleFilterChange}
-                    className="input w-full"
-                >
-                    <option value="">Të gjitha</option>
-                    {categories.map(category => (
-                        <option key={category.id || category._id} value={category.id || category._id}>
-                            {category.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Çmimi Minimal</label>
-                    <input
-                        type="number"
-                        name="minPrice"
-                        value={filters.minPrice}
-                        onChange={handleFilterChange}
-                        className="input w-full"
-                        placeholder="Min €"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Çmimi Maksimal</label>
-                    <input
-                        type="number"
-                        name="maxPrice"
-                        value={filters.maxPrice}
-                        onChange={handleFilterChange}
-                        className="input w-full"
-                        placeholder="Max €"
-                    />
-                </div>
-            </div>
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rendit</label>
-                <select
-                    name="sort"
-                    value={filters.sort}
-                    onChange={handleFilterChange}
-                    className="input w-full"
-                >
-                    <option value="newest">Më të rejat</option>
-                    <option value="price_asc">Çmimi: Nga më i ulët</option>
-                    <option value="price_desc">Çmimi: Nga më i lartë</option>
-                    <option value="rating">Vlerësimi më i lartë</option>
-                </select>
-            </div>
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Vlerësimi Minimal</label>
-                <select
-                    name="rating"
-                    value={filters.rating}
-                    onChange={handleFilterChange}
-                    className="input w-full"
-                >
-                    <option value="">Të Gjitha</option>
-                    <option value="4">4+ Yje</option>
-                    <option value="3">3+ Yje</option>
-                    <option value="2">2+ Yje</option>
-                    <option value="1">1+ Yje</option>
-                </select>
-            </div>
-            <div className="flex items-center space-x-4 mb-4">
-                <label className="flex items-center">
-                    <input
-                        type="checkbox"
-                        name="inStock"
-                        checked={filters.inStock}
-                        onChange={handleFilterChange}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Në Stok</span>
-                </label>
-                <label className="flex items-center">
-                    <input
-                        type="checkbox"
-                        name="onSale"
-                        checked={filters.onSale}
-                        onChange={handleFilterChange}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Në Zbritje</span>
-                </label>
-            </div>
-            <div className="flex justify-end">
-                <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    onClick={() => setShowAdvancedSearch(false)}
-                >
-                    Mbyll
-                </button>
-            </div>
-        </div>
-    );
+    // New: handle search submit
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        setFilters(prev => ({
+            ...prev,
+            query: searchInput
+        }));
+        setCurrentPage(1);
+    };
+
+    // New: handle price filter submit
+    const handlePriceFilterSubmit = (e) => {
+        e.preventDefault();
+        setFilters(prev => {
+            const newFilters = { ...prev };
+            if (minPriceInput) {
+                newFilters.minPrice = minPriceInput;
+            } else {
+                delete newFilters.minPrice;
+            }
+            if (maxPriceInput) {
+                newFilters.maxPrice = maxPriceInput;
+            } else {
+                delete newFilters.maxPrice;
+            }
+            return newFilters;
+        });
+        setCurrentPage(1);
+    };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row gap-8 relative">
-                {/* Advanced Search Button */}
-                <div className="mb-4 md:mb-0 md:mr-4">
-                    <button
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        onClick={() => setShowAdvancedSearch(v => !v)}
-                    >
-                        Kërkim i Avancuar
-                    </button>
-                    {showAdvancedSearch && <AdvancedSearchDropdown />}
-                </div>
-                {/* Sidebar Filters (existing) */}
-                <div className="w-full md:w-64 flex-shrink-0">
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Filtro</h2>
-                        
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Kategoria
-                            </label>
-                            <select
-                                name="categoryId"
-                                value={filters.categoryId}
-                                onChange={handleFilterChange}
-                                className="input"
-                            >
-                                <option value="">Të gjitha</option>
-                                {categories.map(category => (
-                                    <option key={category.id || category._id} value={category.id || category._id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Çmimi
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <input
-                                    type="number"
-                                    name="minPrice"
-                                    value={filters.minPrice}
-                                    onChange={handleFilterChange}
-                                    placeholder="Min"
-                                    className="input"
-                                />
-                                <input
-                                    type="number"
-                                    name="maxPrice"
-                                    value={filters.maxPrice}
-                                    onChange={handleFilterChange}
-                                    placeholder="Max"
-                                    className="input"
-                                />
+        <div className="min-h-screen bg-gray-50 py-8">
+            <div className="container mx-auto px-4">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Filters Sidebar */}
+                    <div className="lg:w-64 flex-shrink-0">
+                        <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-6">Filtro</h2>
+                            
+                            {/* Search */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Kërko
+                                </label>
+                                <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        name="query"
+                                        value={searchInput}
+                                        onChange={e => setSearchInput(e.target.value)}
+                                        placeholder="Shkruaj për të kërkuar..."
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                    <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                        Kërko
+                                    </button>
+                                </form>
                             </div>
-                        </div>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Rendit
-                            </label>
-                            <select
-                                name="sort"
-                                value={filters.sort}
-                                onChange={handleFilterChange}
-                                className="input"
-                            >
-                                <option value="newest">Më të rejat</option>
-                                <option value="price_asc">Çmimi: Nga më i ulët</option>
-                                <option value="price_desc">Çmimi: Nga më i lartë</option>
-                                <option value="rating">Vlerësimi më i lartë</option>
-                            </select>
+                            {/* Category */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Kategoria
+                                </label>
+                                <select
+                                    name="categoryId"
+                                    value={filters.categoryId}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                >
+                                    <option value="">Të gjitha</option>
+                                    {categories.map(category => (
+                                        <option key={category.id || category._id} value={category.id || category._id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Price Range */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Çmimi
+                                </label>
+                                <form onSubmit={handlePriceFilterSubmit} className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="number"
+                                        name="minPrice"
+                                        value={minPriceInput}
+                                        onChange={handleFilterChange}
+                                        placeholder="Min €"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                    <input
+                                        type="number"
+                                        name="maxPrice"
+                                        value={maxPriceInput}
+                                        onChange={handleFilterChange}
+                                        placeholder="Max €"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                    <button type="submit" className="col-span-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 mt-2">
+                                        Filtro
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* Sort */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Rendit
+                                </label>
+                                <select
+                                    name="sort"
+                                    value={filters.sort}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                >
+                                    <option value="newest">Më të rejat</option>
+                                    <option value="price_asc">Çmimi: Nga më i ulët</option>
+                                    <option value="price_desc">Çmimi: Nga më i lartë</option>
+                                    <option value="rating">Vlerësimi më i lartë</option>
+                                </select>
+                            </div>
+
+                            {/* Rating */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Vlerësimi Minimal
+                                </label>
+                                <select
+                                    name="rating"
+                                    value={filters.rating}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                >
+                                    <option value="">Të Gjitha</option>
+                                    <option value="4">4+ Yje</option>
+                                    <option value="3">3+ Yje</option>
+                                    <option value="2">2+ Yje</option>
+                                    <option value="1">1+ Yje</option>
+                                </select>
+                            </div>
+
+                            {/* Checkboxes */}
+                            <div className="space-y-3">
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name="inStock"
+                                        checked={filters.inStock}
+                                        onChange={handleFilterChange}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">Në Stok</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name="onSale"
+                                        checked={filters.onSale}
+                                        onChange={handleFilterChange}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">Në Zbritje</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Products */}
-                <div className="flex-1">
-                    {products.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-xl text-gray-600">
-                                Nuk u gjet asnjë produkt
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {products.map(product => (
-                                    <ProductCard key={product._id} product={product} />
-                                ))}
+                    {/* Products Grid */}
+                    <div className="flex-1">
+                        {products.length === 0 ? (
+                            <div className="text-center py-12">
+                                <h3 className="text-xl font-medium text-gray-900 mb-2">Nuk u gjetën produkte</h3>
+                                <p className="text-gray-500">Provoni të ndryshoni filtrat tuaja</p>
                             </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {products.map(product => (
+                                        <ProductCard key={product._id || product.id} product={product} />
+                                    ))}
+                                </div>
 
-                            {/* Pagination */}
-                            {totalPages > 1 && (
-                                <div className="flex justify-center mt-8">
-                                    <nav className="flex items-center space-x-2">
-                                        <button
-                                            onClick={() => handlePageChange(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className="px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition duration-300"
-                                        >
-                                            Para
-                                        </button>
-                                        {[...Array(totalPages)].map((_, index) => (
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="flex justify-center mt-8 space-x-2">
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                             <button
-                                                key={index + 1}
-                                                onClick={() => handlePageChange(index + 1)}
-                                                className={`px-3 py-1 rounded-md ${
-                                                    currentPage === index + 1
-                                                        ? 'bg-primary-600 text-white'
-                                                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                key={page}
+                                                onClick={() => handlePageChange(page)}
+                                                className={`px-4 py-2 rounded-lg ${
+                                                    currentPage === page
+                                                        ? 'bg-indigo-600 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
                                                 }`}
                                             >
-                                                {index + 1}
+                                                {page}
                                             </button>
                                         ))}
-                                        <button
-                                            onClick={() => handlePageChange(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
-                                            className="px-3 py-1 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                                        >
-                                            Pas
-                                        </button>
-                                    </nav>
-                                </div>
-                            )}
-                        </>
-                    )}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
