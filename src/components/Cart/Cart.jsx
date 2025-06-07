@@ -1,4 +1,5 @@
 import React from 'react';
+// DEBUG: THIS IS COMPONENTS/CART/CART.JSX
 import { Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 
@@ -8,18 +9,18 @@ const Cart = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
-    if (cart.length === 0) {
+    if (!cart.items || cart.items.length === 0) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-2xl font-bold mb-4">Shporta Juaj është Bosh</h1>
                 <Link
                     to="/products"
-                    className="text-primary hover:underline"
+                    className="text-blue-600 hover:underline"
                 >
                     Shiko Produktet
                 </Link>
@@ -28,7 +29,7 @@ const Cart = () => {
     }
 
     const calculateTotal = () => {
-        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
     };
 
     return (
@@ -36,18 +37,18 @@ const Cart = () => {
             <h1 className="text-3xl font-bold mb-8">Shporta</h1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    {cart.map(item => (
+                    {cart.items.map(item => (
                         <div
-                            key={item.id}
+                            key={item.productId}
                             className="flex items-center border-b py-4"
                         >
                             <img
-                                src={item.product.images[0]}
-                                alt={item.product.name}
+                                src={item.image}
+                                alt={item.name}
                                 className="w-20 h-20 object-cover rounded-md"
                             />
                             <div className="ml-4 flex-1">
-                                <h3 className="font-semibold">{item.product.name}</h3>
+                                <h3 className="font-semibold">{item.name}</h3>
                                 <p className="text-gray-600">{item.price}€</p>
                                 <div className="flex items-center mt-2">
                                     <span className="mx-4">Sasia: {item.quantity}</span>
@@ -58,7 +59,7 @@ const Cart = () => {
                                     {(item.price * item.quantity).toFixed(2)}€
                                 </p>
                                 <button
-                                    onClick={() => removeFromCart(item.product.id)}
+                                    onClick={() => removeFromCart(item.productId)}
                                     className="text-red-500 hover:text-red-700 mt-2"
                                 >
                                     Hiq
@@ -86,12 +87,13 @@ const Cart = () => {
                                 </div>
                             </div>
                         </div>
-                        <Link
-                            to="/checkout"
-                            className="block w-full bg-primary text-white text-center py-3 rounded-md mt-6 hover:bg-primary-dark transition-colors"
+                        <button
+                            onClick={() => window.location.href = '/checkout'}
+                            style={{ opacity: 1, border: '2px solid red', fontWeight: 'bold' }}
+                            className="w-full bg-blue-600 text-white text-center py-3 rounded-md mt-6 hover:bg-blue-700 transition-colors"
                         >
-                            Vazhdo me Pagesën
-                        </Link>
+                            Porosit Tani
+                        </button>
                     </div>
                 </div>
             </div>

@@ -29,7 +29,7 @@ const CartPage = () => {
     const updateQuantity = async (productId, newQuantity) => {
         try {
             setError(null);
-            await api.put(`/api/cart/update/${productId}`, { quantity: newQuantity });
+            await api.put('/api/cart/update', { productId, quantity: newQuantity });
             setCartItems(prevItems =>
                 prevItems.map(item =>
                     item.productId === productId
@@ -162,10 +162,11 @@ const CartPage = () => {
                             </div>
                         </div>
                         <button
-                            onClick={handleCheckout}
-                            className="w-full mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+                            onClick={() => window.location.href = '/checkout'}
+                            style={{ fontWeight: 'bold' }}
+                            className="w-full bg-blue-600 text-white text-center py-3 rounded-md mt-6 hover:bg-blue-700 transition-colors"
                         >
-                            Vazhdo me Pagesën
+                            Porosit Tani
                         </button>
                     </div>
                 </div>

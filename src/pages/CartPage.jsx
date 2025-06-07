@@ -1,4 +1,5 @@
 import React from 'react';
+// DEBUG: THIS IS PAGES/CARTPAGE.JSX
 import { useCart } from '../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { FaTrash } from 'react-icons/fa';
@@ -34,6 +35,10 @@ const CartPage = () => {
         );
     }
 
+    const calculateTotal = () => {
+        return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-2xl font-bold mb-4">Shporta Juaj</h1>
@@ -46,9 +51,11 @@ const CartPage = () => {
                                 <div>
                                     <h3 className="font-semibold">{item.name}</h3>
                                     <p className="text-gray-600">{item.price} €</p>
+                                    <p className="text-sm text-gray-500">Sasia: {item.quantity}</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-4">
+                                <p className="font-semibold">{(item.price * item.quantity).toFixed(2)} €</p>
                                 <button
                                     onClick={() => handleRemoveItem(item.productId)}
                                     className="text-red-500 hover:text-red-700"
@@ -60,17 +67,29 @@ const CartPage = () => {
                     ))}
                 </div>
                 <div className="md:col-span-1">
-                    <div className="bg-gray-100 p-4 rounded">
-                        <h2 className="text-xl font-bold mb-4">Përmbledhje</h2>
-                        <div className="flex justify-between mb-2">
-                            <span>Nëntotali:</span>
-                            <span>{cart.total} €</span>
+                    <div className="bg-gray-50 p-6 rounded-lg">
+                        <h2 className="text-xl font-semibold mb-4">Përmbledhja e Porosisë</h2>
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span>Nëntotali:</span>
+                                <span>{calculateTotal().toFixed(2)} €</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Transporti:</span>
+                                <span>0.00 €</span>
+                            </div>
+                            <div className="border-t pt-2">
+                                <div className="flex justify-between font-semibold">
+                                    <span>Totali:</span>
+                                    <span>{calculateTotal().toFixed(2)} €</span>
+                                </div>
+                            </div>
                         </div>
                         <button
                             onClick={handleCheckout}
-                            className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                            className="w-full bg-blue-600 text-white py-3 rounded-lg mt-6 hover:bg-blue-700 transition-colors"
                         >
-                            Vazhdo me Pagesën
+                            Porosit Tani
                         </button>
                     </div>
                 </div>

@@ -11,7 +11,7 @@ router.get('/', authMiddleware.protect, cartController.getUserCart);
 router.post('/add', authMiddleware.protect, cartController.addToCart);
 
 // Perditesimi i sasise se produktit ne shporte
-router.put('/update/:productId', authMiddleware.protect, cartController.updateCartItem);
+router.put('/update', authMiddleware.protect, cartController.updateCartItem);
 
 // Heqja e produktit nga shporta
 router.delete('/remove/:productId', authMiddleware.protect, cartController.removeFromCart);
