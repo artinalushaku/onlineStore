@@ -162,7 +162,7 @@ const CartPage = () => {
                             </div>
                         </div>
                         <button
-                            onClick={() => window.location.href = '/checkout'}
+                            onClick={handleCheckout}
                             style={{ fontWeight: 'bold' }}
                             className="w-full bg-blue-600 text-white text-center py-3 rounded-md mt-6 hover:bg-blue-700 transition-colors"
                         >

@@ -77,7 +77,7 @@ const Navbar = () => {
 
                     {/* User Actions */}
                     <div className="flex items-center space-x-6">
-                        {isLoggedIn && (
+                        {isLoggedIn && user.role !== 'admin' && (
                             <>
                                 <Link to="/notifications" className="text-gray-700 hover:text-indigo-600 relative transition-all duration-200 hover:scale-110">
                                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

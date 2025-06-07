@@ -211,7 +211,8 @@ const AdvancedSearch = () => {
                         return (
                             <div
                                 key={product.id}
-                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                                onClick={() => navigate(`/products/${product.id}`)}
                             >
                                 <img
                                     src={imageSrc}
@@ -248,12 +249,6 @@ const AdvancedSearch = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        <button
-                                            onClick={() => navigate(`/products/${product.id}`)}
-                                            className="text-primary hover:underline"
-                                        >
-                                            Shiko Detajet
-                                        </button>
                                     </div>
                                 </div>
                             </div>

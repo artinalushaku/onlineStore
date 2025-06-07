@@ -61,6 +61,10 @@ const Order = sequelize.define('Order', {
   tax: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0
+  },
+  shippingMethod: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   timestamps: true,

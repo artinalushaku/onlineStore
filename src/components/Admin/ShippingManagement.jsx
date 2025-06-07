@@ -16,48 +16,10 @@ const ShippingManagement = () => {
         isDefault: false
     });
     const [selectedCountries, setSelectedCountries] = useState([]);
-    const [showCountrySelector, setShowCountrySelector] = useState(false);
-    const [newCountry, setNewCountry] = useState('');
-    const [countryList, setCountryList] = useState([]);
 
     useEffect(() => {
-        fetchCountries();
         fetchShippingMethods();
     }, []);
-
-    const fetchCountries = async () => {
-        try {
-            const res = await axios.get('/api/countries');
-            setCountryList(res.data.map(c => c.name));
-        } catch (error) {
-            toast.error('Gabim gjatë marrjes së vendeve');
-        }
-    };
-
-    const handleAddCountry = async () => {
-        if (!newCountry.trim() || countryList.includes(newCountry.trim())) return;
-        try {
-            await axios.post('/api/countries', { name: newCountry.trim() });
-            setNewCountry('');
-            fetchCountries();
-        } catch (error) {
-            toast.error('Gabim gjatë shtimit të vendit');
-        }
-    };
-
-    const handleDeleteCountry = async (countryName) => {
-        try {
-            // Find country by name to get its id
-            const res = await axios.get('/api/countries');
-            const country = res.data.find(c => c.name === countryName);
-            if (country) {
-                await axios.delete(`/api/countries/${country.id}`);
-                fetchCountries();
-            }
-        } catch (error) {
-            toast.error('Gabim gjatë fshirjes së vendit');
-        }
-    };
 
     const fetchShippingMethods = async () => {
         try {
@@ -77,34 +39,6 @@ const ShippingManagement = () => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-    };
-
-    const handleCountrySelect = (country) => {
-        if (selectedCountries.includes(country)) {
-            setSelectedCountries(prev => prev.filter(c => c !== country));
-        } else {
-            setSelectedCountries(prev => [...prev, country]);
-        }
-    };
-
-    const toggleCountrySelector = () => {
-        setShowCountrySelector(!showCountrySelector);
-    };
-
-    const applySelectedCountries = () => {
-        setFormData(prev => ({
-            ...prev,
-            countries: selectedCountries
-        }));
-        setShowCountrySelector(false);
-    };
-
-    const selectAllCountries = () => {
-        setSelectedCountries(countryList);
-    };
-
-    const clearCountrySelection = () => {
-        setSelectedCountries([]);
     };
 
     const handleEditClick = (method) => {
@@ -169,8 +103,6 @@ const ShippingManagement = () => {
         });
         setSelectedCountries([]);
         setEditingMethod(null);
-        setShowCountrySelector(false);
-        setNewCountry('');
     };
 
     if (loading) {
@@ -253,89 +185,23 @@ const ShippingManagement = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Vendet e Disponueshme
                             </label>
-                            <div>
-                                <div 
-                                    onClick={toggleCountrySelector}
-                                    className="flex justify-between items-center w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-                                >
-                                    <span>
-                                        {selectedCountries.length === 0 ? 'Të gjitha vendet' : 
-                                         selectedCountries.length === 1 ? selectedCountries[0] : 
-                                         `${selectedCountries.length} vende të zgjedhura`}
-                                    </span>
-                                    <span>{showCountrySelector ? '▲' : '▼'}</span>
-                                </div>
-                                {showCountrySelector && (
-                                    <div className="mt-2 border border-gray-300 rounded-md p-3">
-                                        <div className="flex justify-between mb-2">
-                                            <button 
-                                                type="button" 
-                                                onClick={selectAllCountries}
-                                                className="text-sm text-primary hover:underline"
-                                            >
-                                                Zgjidh të gjitha
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                onClick={clearCountrySelection}
-                                                className="text-sm text-red-500 hover:underline"
-                                            >
-                                                Pastro
-                                            </button>
-                                        </div>
-                                        <div className="max-h-48 overflow-y-auto">
-                                            {countryList.map(country => (
-                                                <div key={country} className="flex items-center my-1">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`country-${country}`}
-                                                        checked={selectedCountries.includes(country)}
-                                                        onChange={() => handleCountrySelect(country)}
-                                                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                                                    />
-                                                    <label htmlFor={`country-${country}`} className="ml-2 text-sm text-gray-700 flex-1">
-                                                        {country}
-                                                    </label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDeleteCountry(country)}
-                                                        className="ml-2 text-xs text-red-500 hover:text-red-700"
-                                                        title="Delete country"
-                                                    >
-                                                        🗑️
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="flex items-center mt-2">
-                                            <input
-                                                type="text"
-                                                value={newCountry}
-                                                onChange={e => setNewCountry(e.target.value)}
-                                                placeholder="Add new country"
-                                                className="border px-2 py-1 rounded mr-2"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleAddCountry}
-                                                className="bg-blue-600 text-white px-3 py-1 rounded"
-                                            >
-                                                Add
-                                            </button>
-                                        </div>
-                                        <button 
-                                            type="button" 
-                                            onClick={applySelectedCountries}
-                                            className="mt-2 bg-primary-600 text-white text-sm py-1 px-3 rounded-md hover:bg-primary-700"
-                                        >
-                                            Apliko
-                                        </button>
-                                    </div>
-                                )}
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Lëreni bosh për të lejuar të gjitha vendet
-                                </p>
-                            </div>
+                            <select
+                                name="countries"
+                                value={selectedCountries[0] || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setSelectedCountries(value ? [value] : []);
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        countries: value ? [value] : []
+                                    }));
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            >
+                                <option value="">Zgjidhni vendin</option>
+                                <option value="Kosova">Kosova</option>
+                                <option value="Shqiperia">Shqiperia</option>
+                            </select>
                         </div>
 
                         <div className="flex items-center space-x-4">
