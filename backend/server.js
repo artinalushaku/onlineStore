@@ -129,8 +129,8 @@ const startServer = async () => {
     const appPort = 5000;
     // console.log(`Attempting to start server on hardcoded port: ${appPort}`); // Remove debug log
     
-    server.listen(appPort, '127.0.0.1', () => {
-      logger.info(`Server running on port ${appPort} at 127.0.0.1`); // Update log message
+    server.listen(appPort, '0.0.0.0', () => {
+      logger.info(`Server running on port ${appPort}`);
     });
   } catch (error) {
     logger.error(`Server startup error: ${error.message}`); // Keep logger error
