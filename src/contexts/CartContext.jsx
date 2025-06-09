@@ -12,26 +12,34 @@ export const CartProvider = ({ children }) => {
         return items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
     };
 
+    // Fetch cart on mount and when token changes
     useEffect(() => {
-        fetchCart();
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetchCart();
+        } else {
+            setLoading(false);
+        }
     }, []);
 
     const fetchCart = async () => {
         try {
             const token = localStorage.getItem('token');
-            if (token) {
-                const response = await axios.get('/api/cart', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                // Assuming the API returns { items: [...] } or just [...]
-                const items = response.data.items || response.data || [];
-                const total = calculateTotal(items);
-                
-                setCart({ items, total });
-            } else {
+            if (!token) {
                 setCart({ items: [], total: 0 });
+                setLoading(false);
+                return;
             }
+
+            const response = await axios.get('/api/cart', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Ensure we have valid items array
+            const items = Array.isArray(response.data.items) ? response.data.items : [];
+            const total = calculateTotal(items);
+            
+            setCart({ items, total });
         } catch (error) {
             console.error('Gabim gjatë marrjes së shportës:', error);
             setCart({ items: [], total: 0 });
@@ -53,7 +61,8 @@ export const CartProvider = ({ children }) => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             
-            const items = response.data.items || response.data || [];
+            // Ensure we have valid items array
+            const items = Array.isArray(response.data.items) ? response.data.items : [];
             const total = calculateTotal(items);
             
             setCart({ items, total });
@@ -74,7 +83,8 @@ export const CartProvider = ({ children }) => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            const items = response.data.items || response.data || [];
+            // Ensure we have valid items array
+            const items = Array.isArray(response.data.items) ? response.data.items : [];
             const total = calculateTotal(items);
             
             setCart({ items, total });
@@ -97,7 +107,8 @@ export const CartProvider = ({ children }) => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             
-            const items = response.data.items || response.data || [];
+            // Ensure we have valid items array
+            const items = Array.isArray(response.data.items) ? response.data.items : [];
             const total = calculateTotal(items);
             
             setCart({ items, total });

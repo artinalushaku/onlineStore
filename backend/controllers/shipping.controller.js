@@ -38,29 +38,11 @@ const shippingController = {
         where.isActive = true;
       }
       
-      // Filtrim sipas vendeve
-      const countryFilter = req.query.country;
-      
-      let shippingMethods;
-      
-      if (countryFilter) {
-        // Per MongoDB do te perdornim $in, por per Sequelize duhet te perdorim nje qasje tjeter
-        shippingMethods = await Shipping.findAll({
-          where,
-          order: [['price', 'ASC']]
-        });
-        
-        // Filtrojme manualisht per vendin
-        shippingMethods = shippingMethods.filter(method => 
-          method.countries.length === 0 || // E disponueshme globalisht
-          method.countries.includes(countryFilter) // E disponueshme per vendin specifik
-        );
-      } else {
-        shippingMethods = await Shipping.findAll({
-          where,
-          order: [['price', 'ASC']]
-        });
-      }
+      // Always return all shipping methods, no country filtering
+      const shippingMethods = await Shipping.findAll({
+        where,
+        order: [['price', 'ASC']]
+      });
       
       return res.status(200).json(shippingMethods);
     } catch (error) {
@@ -126,22 +108,16 @@ const shippingController = {
   deleteShipping: async (req, res) => {
     try {
       const { id } = req.params;
-      
       const shipping = await Shipping.findByPk(id);
-      
       if (!shipping) {
         return res.status(404).json({ message: 'Metoda e dergeses nuk u gjet' });
       }
-      
-      // Nese eshte metoda e parazgjedhur, nuk lejohet fshirja
       if (shipping.isDefault) {
         return res.status(400).json({ message: 'Nuk mund te fshihet metoda e parazgjedhur e dergeses. Caktoni nje metode tjeter si te parazgjedhur perpara se te fshini kete metode.' });
       }
-      
-      // Fshirja logjike (ndryshojme isActive ne false)
-      await shipping.update({ isActive: false });
-      
-      return res.status(200).json({ message: 'Metoda e dergeses u çaktivizua me sukses' });
+      // Hard delete: remove from database
+      await shipping.destroy();
+      return res.status(200).json({ message: 'Metoda e dergeses u fshi përfundimisht' });
     } catch (error) {
       console.error('Gabim gjate fshirjes se metodes se dergeses:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate fshirjes se metodes se dergeses' });

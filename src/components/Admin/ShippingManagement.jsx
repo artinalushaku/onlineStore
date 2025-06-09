@@ -11,11 +11,9 @@ const ShippingManagement = () => {
         price: '',
         estimatedDelivery: '',
         description: '',
-        countries: [],
         isActive: true,
         isDefault: false
     });
-    const [selectedCountries, setSelectedCountries] = useState([]);
 
     useEffect(() => {
         fetchShippingMethods();
@@ -48,11 +46,9 @@ const ShippingManagement = () => {
             price: method.price,
             estimatedDelivery: method.estimatedDelivery,
             description: method.description || '',
-            countries: method.countries || [],
             isActive: method.isActive,
             isDefault: method.isDefault
         });
-        setSelectedCountries(method.countries || []);
     };
 
     const handleSubmit = async (e) => {
@@ -60,7 +56,7 @@ const ShippingManagement = () => {
         try {
             const methodData = {
                 ...formData,
-                countries: selectedCountries
+                countries: []
             };
 
             if (editingMethod) {
@@ -97,11 +93,9 @@ const ShippingManagement = () => {
             price: '',
             estimatedDelivery: '',
             description: '',
-            countries: [],
             isActive: true,
             isDefault: false
         });
-        setSelectedCountries([]);
         setEditingMethod(null);
     };
 
@@ -181,29 +175,6 @@ const ShippingManagement = () => {
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Vendet e Disponueshme
-                            </label>
-                            <select
-                                name="countries"
-                                value={selectedCountries[0] || ''}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setSelectedCountries(value ? [value] : []);
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        countries: value ? [value] : []
-                                    }));
-                                }}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            >
-                                <option value="">Zgjidhni vendin</option>
-                                <option value="Kosova">Kosova</option>
-                                <option value="Shqiperia">Shqiperia</option>
-                            </select>
-                        </div>
-
                         <div className="flex items-center space-x-4">
                             <label className="flex items-center">
                                 <input
@@ -277,15 +248,7 @@ const ShippingManagement = () => {
                                         </p>
                                         <div className="text-sm text-gray-600">
                                             <span>Vendet: </span>
-                                            {method.countries && Array.isArray(method.countries) && method.countries.length > 0 ? (
-                                                method.countries.length > 3 ? (
-                                                    <span>{method.countries.slice(0, 3).join(', ')} +{method.countries.length - 3} të tjera</span>
-                                                ) : (
-                                                    <span>{method.countries.join(', ')}</span>
-                                                )
-                                            ) : (
-                                                <span>Të gjitha vendet</span>
-                                            )}
+                                            <span>Të gjitha vendet</span>
                                         </div>
                                     </div>
                                 </div>
