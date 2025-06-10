@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import ContactUsModal from '../ContactUsModal';
 
 const Navbar = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [cartCount, setCartCount] = useState(0);
     const [wishlistCount, setWishlistCount] = useState(0);
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const [showContactModal, setShowContactModal] = useState(false);
 
     useEffect(() => {
-        setIsLoggedIn(!!user);
         if (user) {
             fetchCartCount();
             fetchWishlistCount();
@@ -42,8 +42,7 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
+        logout();
         setCartCount(0);
         setWishlistCount(0);
         navigate('/');
@@ -73,11 +72,17 @@ const Navbar = () => {
                         <Link to="/categories" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Kategoritë</Link>
                         <Link to="/advanced-search" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Kërkim i Avancuar</Link>
                         <Link to="/recommendations" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Rekomandime</Link>
+                        <button
+                            className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105"
+                            onClick={() => setShowContactModal(true)}
+                        >
+                            Contact Us
+                        </button>
                     </div>
 
                     {/* User Actions */}
                     <div className="flex items-center space-x-6">
-                        {isLoggedIn && user.role !== 'admin' && (
+                        {user && user.role !== 'admin' && (
                             <>
                                 <Link to="/notifications" className="text-gray-700 hover:text-indigo-600 relative transition-all duration-200 hover:scale-110">
                                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +126,7 @@ const Navbar = () => {
                             </div>
                         )}
 
-                        {isLoggedIn ? (
+                        {user ? (
                             <div className="relative">
                                 <button
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -148,6 +153,7 @@ const Navbar = () => {
                     </div>
                 </div>
             </div>
+            <ContactUsModal open={showContactModal} onClose={() => setShowContactModal(false)} />
         </nav>
     );
 };

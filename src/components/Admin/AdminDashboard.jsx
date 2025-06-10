@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaBoxOpen, FaClipboardList, FaUsers, FaTags, FaTruck, FaChartBar, FaThLarge } from 'react-icons/fa';
+import { FaBoxOpen, FaClipboardList, FaUsers, FaTags, FaTruck, FaChartBar, FaThLarge, FaEnvelope } from 'react-icons/fa';
 import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
 import UserManagement from './UserManagement';
@@ -7,6 +7,7 @@ import CategoryManagement from './CategoryManagement';
 import CouponManagement from './CouponManagement.jsx';
 import ShippingManagement from './ShippingManagement';
 import Reports from './Reports';
+import MessageManagement from './MessageManagement';
 
 const sections = [
   { key: 'products', label: 'Produktet', icon: <FaBoxOpen size={20} /> },
@@ -16,6 +17,7 @@ const sections = [
   { key: 'coupons', label: 'Kuponat', icon: <FaTags size={20} /> },
   { key: 'shipping', label: 'Transporti', icon: <FaTruck size={20} /> },
   { key: 'reports', label: 'Raportet', icon: <FaChartBar size={20} /> },
+  { key: 'messages', label: 'Mesazhet', icon: <FaEnvelope size={20} /> },
 ];
 
 const AdminDashboard = () => {
@@ -37,6 +39,8 @@ const AdminDashboard = () => {
         return <ShippingManagement />;
       case 'reports':
         return <Reports />;
+      case 'messages':
+        return <MessageManagement />;
       default:
         return null;
     }

@@ -22,6 +22,7 @@ import countryRoutes from './routes/country.routes.js';
 import couponRoutes from './routes/coupon.routes.js';
 import reportRoutes from './routes/report.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import contactRoutes from './routes/contact.routes.js';
 
 // Krijo aplikacionin Express
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/contact', contactRoutes);
 
 
 export default app;

@@ -132,16 +132,42 @@ const chatController = {
     markAsRead: async (req, res) => {
         try {
             const { messageId } = req.params;
+            const currentUserId = String(req.user.id);
             
-            const message = await Message.findByIdAndUpdate(
-                messageId,
-                { read: true },
-                { new: true }
-            );
+            // Find the message and ensure it's either received by the current user
+            // or it's a contact form message addressed to 'admin'
+            const message = await Message.findOne({
+                _id: messageId,
+                $or: [
+                    { receiver: currentUserId },
+                    { receiver: 'admin' } // For contact form messages
+                ]
+            });
 
-            res.json(message);
+            if (!message) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Mesazhi nuk u gjet ose nuk keni të drejtë ta shënoni si të lexuar.'
+                });
+            }
+
+            // Only mark as read if it's not already read
+            if (!message.read) {
+                message.read = true;
+                await message.save();
+            }
+
+            res.json({
+                success: true,
+                data: message
+            });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            console.error('Error in markAsRead:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Gabim gjatë shënimit të mesazhit si të lexuar',
+                error: error.message
+            });
         }
     },
 
