@@ -104,7 +104,15 @@ const Footer = () => {
                         <ul className="space-y-2">
                             <li>
                                 <Link
-                                    to="/faq"
+                                    to="/sherbimi-klientit"
+                                    className="text-gray-400 hover:text-white"
+                                >
+                                    Shërbimi i Klientit
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    to="/pyetjet-e-shpeshta"
                                     className="text-gray-400 hover:text-white"
                                 >
                                     Pyetjet e Shpeshta
@@ -112,7 +120,7 @@ const Footer = () => {
                             </li>
                             <li>
                                 <Link
-                                    to="/shipping"
+                                    to="/informacione-dergesa"
                                     className="text-gray-400 hover:text-white"
                                 >
                                     Informacione për Dërgesën
@@ -120,7 +128,7 @@ const Footer = () => {
                             </li>
                             <li>
                                 <Link
-                                    to="/returns"
+                                    to="/politika-kthimit"
                                     className="text-gray-400 hover:text-white"
                                 >
                                     Politika e Kthimit
@@ -128,7 +136,7 @@ const Footer = () => {
                             </li>
                             <li>
                                 <Link
-                                    to="/privacy"
+                                    to="/politika-privatesise"
                                     className="text-gray-400 hover:text-white"
                                 >
                                     Politika e Privatësisë

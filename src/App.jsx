@@ -55,6 +55,11 @@ import Chat from './components/Chat/Chat';
 import OrderSuccess from './components/Checkout/OrderSuccess';
 import OrderList from './components/Orders/OrderList';
 import OrderDetails from './components/Orders/OrderDetails';
+import ShërbimiKlientit from './components/StaticPages/ShërbimiKlientit';
+import PyetjetShpeshta from './components/StaticPages/PyetjetShpeshta';
+import InformacioneDërgesa from './components/StaticPages/InformacioneDërgesa';
+import PolitikaKthimit from './components/StaticPages/PolitikaKthimit';
+import PolitikaPrivatësisë from './components/StaticPages/PolitikaPrivatësisë';
 
 // Admin routes
 const AdminRoutes = () => (
@@ -129,6 +134,11 @@ function App() {
                   <Route index element={<OrderList />} />
                   <Route path=":orderId" element={<OrderDetails />} />
                 </Route>
+                <Route path="/sherbimi-klientit" element={<ShërbimiKlientit />} />
+                <Route path="/pyetjet-e-shpeshta" element={<PyetjetShpeshta />} />
+                <Route path="/informacione-dergesa" element={<InformacioneDërgesa />} />
+                <Route path="/politika-kthimit" element={<PolitikaKthimit />} />
+                <Route path="/politika-privatesise" element={<PolitikaPrivatësisë />} />
               </Routes>
             </main>
             <Footer />
