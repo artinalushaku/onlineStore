@@ -79,22 +79,54 @@ const syncOrder = [
   Notification    // Finally notifications
 ];
 
+// Model associations (add after all model imports)
+OrderItem.belongsTo(Product, { foreignKey: 'productId' });
+OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
+Order.hasMany(OrderItem, { as: 'items', foreignKey: 'orderId' });
+Order.belongsTo(User, { foreignKey: 'userId' });
+Order.hasMany(Payment, { as: 'payments', foreignKey: 'orderId', sourceKey: 'id' });
+Order.hasOne(Shipping, { as: 'shipping', foreignKey: 'orderId', sourceKey: 'id' });
+Order.belongsTo(Address, { as: 'shippingAddress', foreignKey: 'shippingAddressId' });
+Order.belongsTo(Address, { as: 'billingAddress', foreignKey: 'billingAddressId' });
+Payment.belongsTo(Order, { foreignKey: 'orderId', targetKey: 'id' });
+Payment.belongsTo(User, { foreignKey: 'userId', targetKey: 'id' });
+Shipping.belongsTo(Order, { foreignKey: 'orderId' });
+Shipping.belongsTo(User, { foreignKey: 'userId' });
+Product.belongsTo(Category, { foreignKey: 'categoryId' });
+Category.hasMany(Product, { foreignKey: 'categoryId' });
+
 // Lidhja me bazen e te dhenave MySQL
 const connectMySQL = async () => {
   try {
     await sequelize.authenticate();
     logger.info('MySQL database connected successfully');
     
-    // Safe sync in development to avoid data loss
     if (currentEnv === 'development') {
       try {
-        // Just sync models without force (does not drop tables)
+        // Step 1: Create tables without foreign key constraints first
+        logger.info('Starting database synchronization...');
+        
+        // Disable foreign key checks temporarily
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
+        
+        // Sync all models (this creates tables without enforcing FK constraints)
         for (const model of syncOrder) {
-          await model.sync();
-          logger.info(`Synced table: ${model.name}`);
+          try {
+            await model.sync();
+            logger.info(`✓ Synced table: ${model.tableName || model.name}`);
+          } catch (modelError) {
+            logger.error(`✗ Failed to sync ${model.tableName || model.name}:`, modelError.message);
+            throw modelError;
+          }
         }
+        
+        // Re-enable foreign key checks
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
+        
         logger.info('MySQL database sync completed successfully');
       } catch (syncError) {
+        // Re-enable foreign key checks even if sync fails
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;').catch(() => {});
         console.error('MySQL database sync error:', syncError);
         throw syncError;
       }
@@ -105,7 +137,6 @@ const connectMySQL = async () => {
     throw error;
   }
 };
-
 // Lidhja me bazen e te dhenave MongoDB
 const connectMongoDB = async () => {
   try {

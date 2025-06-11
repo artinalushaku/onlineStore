@@ -1,5 +1,10 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
+import OrderItem from './orderItem.model.js';
+import User from './user.model.js';
+import Payment from './payment.model.js';
+import Shipping from './shipping.model.js';
+import Address from './address.model.js';
 
 const Order = sequelize.define('Order', {
   id: {
@@ -11,7 +16,7 @@ const Order = sequelize.define('Order', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'users',
+      model: 'User',
       key: 'id'
     }
   },
@@ -23,13 +28,21 @@ const Order = sequelize.define('Order', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
-  shippingAddress: {
-    type: DataTypes.TEXT,
-    allowNull: false
+  shippingAddressId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Address',
+      key: 'id'
+    }
   },
-  billingAddress: {
-    type: DataTypes.TEXT,
-    allowNull: false
+  billingAddressId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Address',
+      key: 'id'
+    }
   },
   notes: {
     type: DataTypes.TEXT
@@ -71,25 +84,5 @@ const Order = sequelize.define('Order', {
   tableName: 'orders',
   underscored: true
 });
-
-Order.associate = (models) => {
-  Order.belongsTo(models.User, { 
-    foreignKey: 'userId',
-    targetKey: 'id'
-  });
-  Order.hasMany(models.Payment, { 
-    foreignKey: 'orderId',
-    sourceKey: 'id'
-  });
-  Order.hasOne(models.Shipping, { 
-    foreignKey: 'orderId',
-    sourceKey: 'id'
-  });
-  Order.hasMany(models.OrderItem, { 
-    as: 'items', 
-    foreignKey: 'orderId',
-    sourceKey: 'id'
-  });
-};
 
 export default Order;

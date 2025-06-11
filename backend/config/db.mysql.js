@@ -7,17 +7,26 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from the correct path (ensure it's loaded here too for this file's defaults)
+// Load environment variables from the correct path
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-// Set values for database configuration using DB_ prefixes
+// FIXED: Use the correct environment variable names that match your .env file
 const dbConfig = {
-  database: process.env.DB_NAME || 'onlinestore', // Use DB_NAME, fallback to default
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '', // Use DB_PASSWORD, fallback to empty
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.PORT || 3306 // Use PORT from .env, fallback to 3306
+  database: process.env.MYSQL_DATABASE || 'onlinestore',
+  user: process.env.MYSQL_USER || 'root',
+  password: process.env.MYSQL_PASSWORD || '',
+  host: process.env.MYSQL_HOST || 'localhost',
+  port: process.env.MYSQL_PORT || 3306  // FIXED: Use MYSQL_PORT, not PORT
 };
+
+// Debug: Log the configuration (remove after testing)
+console.log('MySQL Configuration:', {
+  database: dbConfig.database,
+  user: dbConfig.user,
+  host: dbConfig.host,
+  port: dbConfig.port,
+  password: dbConfig.password ? '***' : 'empty'
+});
 
 // Konfigurimi i lidhjes me MySQL
 const sequelize = new Sequelize(
@@ -43,13 +52,4 @@ const sequelize = new Sequelize(
     }
 );
 
-// Remove the automatic connection test here to avoid duplicate logs
-// sequelize.authenticate()
-//     .then(() => {
-//         logger.info('MySQL connection successful'); // Use the logger
-//     })
-//     .catch(err => {
-//         logger.error('MySQL connection error:', err); // Use the logger
-//     });
-
-export default sequelize; 
+export default sequelize;

@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
+import Product from './product.model.js';
 import Order from './order.model.js';
 
 const OrderItem = sequelize.define('OrderItem', {
@@ -20,10 +21,5 @@ const OrderItem = sequelize.define('OrderItem', {
   tableName: 'order_items',
   timestamps: true
 });
-
-OrderItem.associate = (models) => {
-  OrderItem.belongsTo(models.Order, { foreignKey: 'orderId' });
-  OrderItem.belongsTo(models.Product, { foreignKey: 'productId' });
-};
 
 export default OrderItem; 

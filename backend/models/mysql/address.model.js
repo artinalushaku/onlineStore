@@ -63,12 +63,4 @@ const Address = sequelize.define('Address', {
   underscored: true
 });
 
-// Përcakto lidhjet me modelet e tjera
-Address.associate = (models) => {
-  Address.belongsTo(models.User, { 
-    foreignKey: 'userId',
-    targetKey: 'id'
-  });
-};
-
 export default Address; 

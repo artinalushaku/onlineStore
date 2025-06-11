@@ -1,6 +1,5 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/db.mysql.js';
-import Category from './category.model.js';
 
 
 const Product = sequelize.define('Product', {
@@ -50,10 +49,11 @@ const Product = sequelize.define('Product', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true
+  },
+  discount: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0
   }
 });
 
 export default Product;
-
-Product.belongsTo(Category, { foreignKey: 'categoryId' });
-Category.hasMany(Product, { foreignKey: 'categoryId' });

@@ -47,7 +47,12 @@ const Discount = sequelize.define('Discount', {
   description: {
     type: DataTypes.STRING,
     allowNull: true
-  }
+  },
+  maxDiscount: {
+    type: DataTypes.DECIMAL(10,2),
+    field: 'max_discount',
+    allowNull: true,
+  },
 });
 
 export default Discount;

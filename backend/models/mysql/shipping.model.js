@@ -19,7 +19,7 @@ const Shipping = sequelize.define('Shipping', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'users',
+      model: 'User',
       key: 'id'
     }
   },
@@ -41,14 +41,16 @@ const Shipping = sequelize.define('Shipping', {
     defaultValue: true
   },
   description: {
-    type: DataTypes.TEXT
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   isDefault: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
   countries: {
-    type: DataTypes.JSON
+    type: DataTypes.JSON,
+    defaultValue: []
   },
   // Detajet e adresës së dërgesës
   firstName: {
@@ -97,11 +99,5 @@ const Shipping = sequelize.define('Shipping', {
   tableName: 'shippings',
   underscored: true
 });
-
-// Përcakto lidhjet me modelet e tjera
-Shipping.associate = (models) => {
-  Shipping.belongsTo(models.Order, { foreignKey: 'orderId' });
-  Shipping.belongsTo(models.User, { foreignKey: 'userId' });
-};
 
 export default Shipping;
