@@ -1,4 +1,5 @@
 import Shipping from '../models/mysql/shipping.model.js';
+import { Op } from 'sequelize';
 
 // Kontrolluesi i metodave te dergeses
 const shippingController = {
@@ -121,6 +122,121 @@ const shippingController = {
     } catch (error) {
       console.error('Gabim gjate fshirjes se metodes se dergeses:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate fshirjes se metodes se dergeses' });
+    }
+  },
+
+  // Get all shipping methods
+  getAllShippingMethods: async (req, res) => {
+    try {
+      const shippingMethods = await Shipping.findAll();
+      res.json(shippingMethods);
+    } catch (error) {
+      console.error('Error fetching shipping methods:', error);
+      res.status(500).json({ message: 'Error fetching shipping methods' });
+    }
+  },
+
+  // Get shipping methods for a specific country
+  getShippingMethodsByCountry: async (req, res) => {
+    try {
+      const { country } = req.params;
+      const shippingMethods = await Shipping.findAll({
+        where: {
+          isActive: true,
+          [Op.or]: [
+            { countries: { [Op.contains]: [country] } },
+            { countries: { [Op.eq]: [] } } // Methods available in all countries
+          ]
+        }
+      });
+      res.json(shippingMethods);
+    } catch (error) {
+      console.error('Error fetching shipping methods for country:', error);
+      res.status(500).json({ message: 'Error fetching shipping methods' });
+    }
+  },
+
+  // Create a new shipping method
+  createShippingMethod: async (req, res) => {
+    try {
+      const { name, price, estimatedDelivery, description, isActive, isDefault, countries } = req.body;
+
+      // If this is set as default, unset any existing default
+      if (isDefault) {
+        await Shipping.update(
+          { isDefault: false },
+          { where: { isDefault: true } }
+        );
+      }
+
+      const shippingMethod = await Shipping.create({
+        name,
+        price,
+        estimatedDelivery,
+        description,
+        isActive,
+        isDefault,
+        countries: countries || []
+      });
+
+      res.status(201).json(shippingMethod);
+    } catch (error) {
+      console.error('Error creating shipping method:', error);
+      res.status(500).json({ message: 'Error creating shipping method' });
+    }
+  },
+
+  // Update a shipping method
+  updateShippingMethod: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, price, estimatedDelivery, description, isActive, isDefault, countries } = req.body;
+
+      // If this is set as default, unset any existing default
+      if (isDefault) {
+        await Shipping.update(
+          { isDefault: false },
+          { where: { isDefault: true, id: { [Op.ne]: id } } }
+        );
+      }
+
+      const shippingMethod = await Shipping.findByPk(id);
+      if (!shippingMethod) {
+        return res.status(404).json({ message: 'Shipping method not found' });
+      }
+
+      await shippingMethod.update({
+        name,
+        price,
+        estimatedDelivery,
+        description,
+        isActive,
+        isDefault,
+        countries: countries || []
+      });
+
+      res.json(shippingMethod);
+    } catch (error) {
+      console.error('Error updating shipping method:', error);
+      res.status(500).json({ message: 'Error updating shipping method' });
+    }
+  },
+
+  // Delete a shipping method
+  deleteShippingMethod: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const shippingMethod = await Shipping.findByPk(id);
+      
+      if (!shippingMethod) {
+        return res.status(404).json({ message: 'Shipping method not found' });
+      }
+
+      await shippingMethod.destroy();
+      res.json({ message: 'Shipping method deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting shipping method:', error);
+      res.status(500).json({ message: 'Error deleting shipping method' });
     }
   }
 };

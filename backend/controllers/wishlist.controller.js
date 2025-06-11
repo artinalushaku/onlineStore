@@ -1,5 +1,6 @@
 import Wishlist from '../models/mongo/wishlist.model.js';
 import Product from '../models/mysql/product.model.js';
+import User from '../models/mysql/user.model.js';
 
 // Kontrolluesi i listes se deshirave
 const wishlistController = {
@@ -113,6 +114,36 @@ const wishlistController = {
     } catch (error) {
       console.error('Gabim gjatë pastrimit të listës së dëshirave:', error);
       return res.status(500).json({ message: 'Gabim në server' });
+    }
+  },
+
+  // Get all wishlists for admin
+  getAllWishlistsForAdmin: async (req, res) => {
+    try {
+      const wishlists = await Wishlist.find();
+      const userIds = wishlists.map(w => w.userId);
+      const users = await User.findAll({
+        where: { id: userIds },
+        attributes: ['id', 'firstName', 'lastName', 'email']
+      });
+      const userMap = {};
+      users.forEach(u => {
+        userMap[u.id] = u;
+      });
+      const result = wishlists.map(w => ({
+        _id: w._id,
+        user: userMap[w.userId] ? {
+          id: userMap[w.userId].id,
+          name: userMap[w.userId].firstName + ' ' + userMap[w.userId].lastName,
+          email: userMap[w.userId].email
+        } : null,
+        products: w.items,
+        updatedAt: w.updatedAt
+      }));
+      res.json(result);
+    } catch (error) {
+      console.error('Gabim gjatë marrjes së wishlistave për admin:', error);
+      res.status(500).json({ message: 'Gabim në server' });
     }
   }
 };

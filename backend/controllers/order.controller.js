@@ -5,6 +5,7 @@ import User from '../models/mysql/user.model.js';
 import Cart from '../models/mongo/cart.model.js';
 import Discount from '../models/mysql/discount.model.js';
 import Shipping from '../models/mysql/shipping.model.js';
+import Address from '../models/mysql/address.model.js';
 import { Op } from 'sequelize';
 import mongoose from 'mongoose';
 import sequelize from '../config/db.mysql.js';
@@ -62,7 +63,7 @@ const orderController = {
             validUntil: { [Op.gte]: new Date() },
             [Op.or]: [
               { usageLimit: null },
-              { usageCount: { [Op.lt]: sequelize.col('usageLimit') } }
+              { usageCount: { [Op.lt]: sequelize.col('usage_limit') } }
             ]
           },
           transaction
@@ -75,8 +76,14 @@ const orderController = {
           if (cartTotal >= validDiscount.minimumPurchase) {
             if (validDiscount.type === 'percentage') {
               discountAmount = (cartTotal * validDiscount.value) / 100;
+              if (validDiscount.maxDiscount && discountAmount > validDiscount.maxDiscount) {
+                discountAmount = validDiscount.maxDiscount;
+              }
             } else if (validDiscount.type === 'fixed') {
               discountAmount = validDiscount.value;
+              if (validDiscount.maxDiscount && discountAmount > validDiscount.maxDiscount) {
+                discountAmount = validDiscount.maxDiscount;
+              }
             }
             
             // Perditesojme numrin e perdorimeve te kodit
@@ -88,22 +95,42 @@ const orderController = {
       }
       
       // Llogarisim totalin e porosise
-      const subtotal = cart.total;
-      const shippingCost = shippingMethod.price;
-      const tax = subtotal * 0.18; // 18% TVSH
-      const total = subtotal + shippingCost + tax - discountAmount;
+      const subtotal = Number(cart.total);
+      const shippingCost = Number(shippingMethod.price);
+      const total = subtotal + shippingCost - Number(discountAmount);
       
-      // Ruajme adresen e dergeses
-      let addressString = JSON.stringify({
-        firstName: shipping.address.firstName,
-        lastName: shipping.address.lastName,
-        address1: shipping.address.address1,
-        address2: shipping.address.address2 || '',
-        city: shipping.address.city,
-        postalCode: shipping.address.postalCode,
-        country: shipping.address.country,
-        phone: shipping.address.phone
+      // Fshi id nese ekziston ne adresen e zgjedhur
+      const addressData = { ...shipping.address };
+      delete addressData.id;
+      
+      // Kontrollo nese ekziston adresa per userin
+      let shippingAddress = await Address.findOne({
+        where: {
+          userId: userId,
+          firstName: addressData.firstName,
+          lastName: addressData.lastName,
+          address1: addressData.address1,
+          address2: addressData.address2 || '',
+          city: addressData.city,
+          state: addressData.state,
+          country: addressData.country,
+          postalCode: addressData.postalCode,
+          phone: addressData.phone,
+          addressType: 'shipping'
+        },
+        transaction
       });
+      
+      if (!shippingAddress) {
+        shippingAddress = await Address.create({
+          ...addressData,
+          userId: userId,
+          addressType: 'shipping'
+        }, { transaction });
+      }
+      
+      // Mund të përdorësh të njëjtën për billing ose krijo një tjetër nëse ke formë të veçantë
+      const billingAddress = shippingAddress;
       
       // Krijojme porosine
       const order = await Order.create({
@@ -111,9 +138,8 @@ const orderController = {
         status: 'pending',
         totalAmount: total,
         subTotal: subtotal,
-        tax: tax,
-        shippingAddress: addressString,
-        billingAddress: addressString, // Perdorim te njejten adrese per faturim
+        shippingAddressId: shippingAddress.id,
+        billingAddressId: billingAddress.id,
         shippingMethod: shippingMethod.name,
         paymentMethod,
         paymentStatus: 'pending',
@@ -168,15 +194,22 @@ const orderController = {
       // Kthejme porosine e krijuar
       const createdOrder = await Order.findByPk(order.id, {
         include: [
-          { model: OrderItem, as: 'items' },
+          {
+            model: OrderItem,
+            as: 'items',
+            include: [
+              { model: Product, attributes: ['id', 'name', 'price', 'images', 'discount'] }
+            ]
+          },
           { model: User, attributes: ['id', 'firstName', 'lastName', 'email'] }
         ]
       });
       
       return res.status(201).json(createdOrder);
     } catch (error) {
-      // Kthejme transaksionin mbrapa ne rast gabimi
+      if (!transaction.finished) {
       await transaction.rollback();
+      }
       console.error('Gabim gjate krijimit te porosise:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate krijimit te porosise' });
     }
@@ -250,7 +283,13 @@ const orderController = {
       const { count, rows: orders } = await Order.findAndCountAll({
         where: whereClause,
         include: [
-          { model: OrderItem, as: 'items' },
+          {
+            model: OrderItem,
+            as: 'items',
+            include: [
+              { model: Product, attributes: ['id', 'name', 'price', 'images', 'discount'] }
+            ]
+          },
           { model: User, attributes: ['id', 'firstName', 'lastName', 'email'] }
         ],
         order: [['createdAt', 'DESC']],
@@ -280,14 +319,23 @@ const orderController = {
       // Gjejme porosine
       const order = await Order.findByPk(id, {
         include: [
-          { model: OrderItem, as: 'items' },
-          { model: User, attributes: ['id', 'firstName', 'lastName', 'email'] }
+          {
+            model: OrderItem,
+            as: 'items',
+            include: [
+              { model: Product, attributes: ['id', 'name', 'price', 'images', 'discount'] }
+            ]
+          },
+          { model: User, attributes: ['id', 'firstName', 'lastName', 'email'] },
+          { model: Address, as: 'shippingAddress' }
         ]
       });
       
       if (!order) {
         return res.status(404).json({ message: 'Porosia nuk u gjet' });
       }
+      
+      console.log('Order userId:', order.userId, 'Request userId:', userId, 'Role:', userRole);
       
       // Verifikojme nese perdoruesi ka te drejte te shikoje porosine
       if (order.userId !== userId && userRole !== 'admin') {

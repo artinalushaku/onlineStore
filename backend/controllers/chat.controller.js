@@ -65,6 +65,7 @@ const chatController = {
     getConversations: async (req, res) => {
         try {
             const currentUserId = String(req.user.id);
+            const isAdmin = req.user.role === 'admin';
 
             // Merr të gjitha mesazhet e fundit për çdo bisedë
             const conversations = await Message.aggregate([
@@ -72,7 +73,8 @@ const chatController = {
                     $match: {
                         $or: [
                             { sender: currentUserId },
-                            { receiver: currentUserId }
+                            { receiver: currentUserId },
+                            ...(isAdmin ? [{ receiver: 'admin' }] : [])
                         ]
                     }
                 },
@@ -93,25 +95,31 @@ const chatController = {
                 },
                 {
                     $lookup: {
-                        from: 'users',
-                        localField: '_id',
-                        foreignField: '_id',
+                        from: 'user',
+                        let: { userId: { $toInt: '$_id' } },
+                        pipeline: [
+                            { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+                            { $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } }
+                        ],
                         as: 'user'
                     }
                 },
                 {
-                    $unwind: '$user'
+                    $addFields: {
+                        user: {
+                            $cond: [
+                                { $gt: [{ $size: '$user' }, 0] },
+                                { $arrayElemAt: ['$user', 0] },
+                                { firstName: 'Përdorues', lastName: 'i ri', email: '' }
+                            ]
+                        }
+                    }
                 },
                 {
                     $project: {
                         _id: 1,
                         lastMessage: 1,
-                        user: {
-                            _id: 1,
-                            firstName: 1,
-                            lastName: 1,
-                            email: 1
-                        }
+                        user: 1
                     }
                 }
             ]);
@@ -132,42 +140,16 @@ const chatController = {
     markAsRead: async (req, res) => {
         try {
             const { messageId } = req.params;
-            const currentUserId = String(req.user.id);
             
-            // Find the message and ensure it's either received by the current user
-            // or it's a contact form message addressed to 'admin'
-            const message = await Message.findOne({
-                _id: messageId,
-                $or: [
-                    { receiver: currentUserId },
-                    { receiver: 'admin' } // For contact form messages
-                ]
-            });
+            const message = await Message.findByIdAndUpdate(
+                messageId,
+                { read: true },
+                { new: true }
+            );
 
-            if (!message) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Mesazhi nuk u gjet ose nuk keni të drejtë ta shënoni si të lexuar.'
-                });
-            }
-
-            // Only mark as read if it's not already read
-            if (!message.read) {
-                message.read = true;
-                await message.save();
-            }
-
-            res.json({
-                success: true,
-                data: message
-            });
+            res.json(message);
         } catch (error) {
-            console.error('Error in markAsRead:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Gabim gjatë shënimit të mesazhit si të lexuar',
-                error: error.message
-            });
+            res.status(500).json({ message: error.message });
         }
     },
 
@@ -204,6 +186,21 @@ const chatController = {
                 message: 'Gabim në marrjen e bisedës',
                 error: error.message
             });
+        }
+    },
+
+    deleteConversation: async (req, res) => {
+        try {
+            const { id } = req.params;
+            await Message.deleteMany({
+                $or: [
+                    { sender: id },
+                    { receiver: id }
+                ]
+            });
+            res.status(200).json({ success: true, message: 'Biseda u fshi me sukses.' });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Gabim gjatë fshirjes së bisedës.', error: error.message });
         }
     }
 };

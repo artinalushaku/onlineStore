@@ -1,4 +1,5 @@
 import Review from '../models/mongo/review.model.js';
+import User from '../models/mysql/user.model.js';
 import Product from '../models/mysql/product.model.js';
 
 // Kontrolluesi i komenteve
@@ -179,6 +180,44 @@ const reviewController = {
     } catch (error) {
       console.error('Gabim gjate fshirjes se komentit:', error);
       return res.status(500).json({ message: 'Gabim ne server gjate fshirjes se komentit' });
+    }
+  },
+
+  getAllReviews: async (req, res) => {
+    try {
+      const reviews = await Review.findAll({
+        include: [
+          { model: User, attributes: ['id', 'firstName', 'lastName', 'email'] },
+          { model: Product, attributes: ['id', 'name'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: 'Gabim gjatë marrjes së komenteve' });
+    }
+  },
+
+  updateReviewStatus: async (req, res) => {
+    try {
+      const review = await Review.findByPk(req.params.id);
+      if (!review) return res.status(404).json({ message: 'Review nuk u gjet' });
+      review.isApproved = req.body.isApproved;
+      await review.save();
+      res.json({ message: 'Statusi u ndryshua' });
+    } catch (error) {
+      res.status(500).json({ message: 'Gabim gjatë ndryshimit të statusit' });
+    }
+  },
+
+  deleteReview: async (req, res) => {
+    try {
+      const review = await Review.findByPk(req.params.id);
+      if (!review) return res.status(404).json({ message: 'Review nuk u gjet' });
+      await review.destroy();
+      res.json({ message: 'Review u fshi me sukses' });
+    } catch (error) {
+      res.status(500).json({ message: 'Gabim gjatë fshirjes së review-t' });
     }
   }
 };

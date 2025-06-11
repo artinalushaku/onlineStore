@@ -6,7 +6,7 @@ const discountController = {
   // Krijimi i nje kodi te ri zbritjeje (vetem admin)
   createDiscount: async (req, res) => {
     try {
-      const { code, type, value, validFrom, validUntil, minimumPurchase, usageLimit, description } = req.body;
+      const { code, type, value, validFrom, validUntil, minimumPurchase, usageLimit, maxDiscount, description } = req.body;
       
       // Verifikojme nese kodi ekziston tashme
       const existingDiscount = await Discount.findOne({ where: { code } });
@@ -23,6 +23,7 @@ const discountController = {
         validUntil,
         minimumPurchase: minimumPurchase || 0,
         usageLimit: usageLimit || null,
+        maxDiscount: maxDiscount || null,
         description
       });
       
@@ -90,7 +91,7 @@ const discountController = {
           validUntil: { [Op.gte]: new Date() },
           [Op.or]: [
             { usageLimit: null },
-            { usageCount: { [Op.lt]: sequelize.col('usageLimit') } }
+            { usageCount: { [Op.lt]: sequelize.col('usage_limit') } }
           ]
         }
       });
@@ -112,8 +113,14 @@ const discountController = {
       
       if (discount.type === 'percentage') {
         discountAmount = (cartTotal * discount.value) / 100;
+        if (discount.maxDiscount && discountAmount > discount.maxDiscount) {
+          discountAmount = discount.maxDiscount;
+        }
       } else if (discount.type === 'fixed') {
         discountAmount = discount.value;
+        if (discount.maxDiscount && discountAmount > discount.maxDiscount) {
+          discountAmount = discount.maxDiscount;
+        }
       }
       
       return res.status(200).json({
@@ -131,7 +138,7 @@ const discountController = {
   updateDiscount: async (req, res) => {
     try {
       const { id } = req.params;
-      const { code, type, value, validFrom, validUntil, minimumPurchase, usageLimit, isActive, description } = req.body;
+      const { code, type, value, validFrom, validUntil, minimumPurchase, usageLimit, isActive, maxDiscount, description } = req.body;
       
       const discount = await Discount.findByPk(id);
       
@@ -156,6 +163,7 @@ const discountController = {
         validUntil: validUntil || discount.validUntil,
         minimumPurchase: minimumPurchase !== undefined ? minimumPurchase : discount.minimumPurchase,
         usageLimit: usageLimit !== undefined ? usageLimit : discount.usageLimit,
+        maxDiscount: maxDiscount !== undefined ? maxDiscount : discount.maxDiscount,
         isActive: isActive !== undefined ? isActive : discount.isActive,
         description: description !== undefined ? description : discount.description
       });
