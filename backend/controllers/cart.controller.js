@@ -216,6 +216,31 @@ const cartController = {
             console.error('Gabim gjatë marrjes së numrit të artikujve në shportë:', error);
             return res.status(500).json({ message: 'Gabim në server gjatë marrjes së numrit të artikujve në shportë' });
         }
+    },
+
+    getAllCartsForAdmin: async (req, res) => {
+        try {
+            const carts = await Cart.find();
+            res.json(carts);
+        } catch (error) {
+            console.error('Gabim gjatë marrjes së shportave për admin:', error);
+            res.status(500).json({ message: 'Gabim në server' });
+        }
+    },
+
+    deleteCartByIdForAdmin: async (req, res) => {
+        try {
+            const { cartId } = req.params;
+            const cart = await Cart.findById(cartId);
+            if (!cart) {
+                return res.status(404).json({ message: 'Shporta nuk u gjet' });
+            }
+            await cart.remove();
+            res.json({ message: 'Shporta u fshi me sukses' });
+        } catch (error) {
+            console.error('Gabim gjatë fshirjes së shportës:', error);
+            res.status(500).json({ message: 'Gabim në server' });
+        }
     }
 };
 
