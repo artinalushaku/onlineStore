@@ -60,6 +60,7 @@ import PyetjetShpeshta from './components/StaticPages/PyetjetShpeshta';
 import InformacioneDërgesa from './components/StaticPages/InformacioneDërgesa';
 import PolitikaKthimit from './components/StaticPages/PolitikaKthimit';
 import PolitikaPrivatësisë from './components/StaticPages/PolitikaPrivatësisë';
+import ContactUs from './components/ContactUs/ContactUsPage';
 
 // Admin routes
 const AdminRoutes = () => (
@@ -139,6 +140,7 @@ function App() {
                 <Route path="/informacione-dergesa" element={<InformacioneDërgesa />} />
                 <Route path="/politika-kthimit" element={<PolitikaKthimit />} />
                 <Route path="/politika-privatesise" element={<PolitikaPrivatësisë />} />
+                <Route path="/contact-us-page" element={<ContactUs />} />
               </Routes>
             </main>
             <Footer />

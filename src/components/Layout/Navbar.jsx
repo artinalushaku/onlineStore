@@ -71,7 +71,7 @@ const Navbar = () => {
                     <div className="hidden md:flex items-center space-x-8">
                         <Link to="/products" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Produktet</Link>
                         <Link to="/categories" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Kategoritë</Link>
-                        <Link to="/advanced-search" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Kërkim i Avancuar</Link>
+                        <Link to="/contact-us-page" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Kontaktoni</Link>
                         <Link to="/recommendations" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105">Rekomandime</Link>
                     </div>
 
