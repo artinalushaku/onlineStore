@@ -5,7 +5,8 @@ const chatController = {
     sendMessage: async (req, res) => {
         try {
             const { receiverId, content } = req.body;
-            const senderId = req.user.id;
+            // If admin, always use 'admin' as sender
+            const senderId = req.user.role === 'admin' ? 'admin' : req.user.id;
 
             const message = new Message({
                 sender: String(senderId),
@@ -15,10 +16,12 @@ const chatController = {
 
             await message.save();
 
-            if (receiverId && receiverId !== 'admin') {
-                req.app.get('io').to(String(receiverId)).emit('message', message);
-            } else {
+            // If the message is for an admin, broadcast to all admins
+            if (receiverId === 'admin' || !receiverId) {
                 req.app.get('io').to('admin').emit('message', message);
+            } else {
+                // For direct messages between users
+                req.app.get('io').to(String(receiverId)).emit('message', message);
             }
 
             res.status(201).json({
@@ -38,14 +41,11 @@ const chatController = {
     getMessages: async (req, res) => {
         try {
             const { userId } = req.params;
-            const currentUserId = String(req.user.id);
 
             const messages = await Message.find({
                 $or: [
-                    { sender: currentUserId, receiver: String(userId) },
-                    { sender: String(userId), receiver: currentUserId },
-                    { receiver: 'admin', sender: currentUserId },
-                    { receiver: null, sender: currentUserId }
+                    { sender: String(userId), receiver: 'admin' },
+                    { sender: 'admin', receiver: String(userId) }
                 ]
             }).sort({ createdAt: 1 });
 

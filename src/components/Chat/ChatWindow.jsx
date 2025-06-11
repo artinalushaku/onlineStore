@@ -14,7 +14,7 @@ const ChatWindow = ({ receiverId, receiverName, onClose }) => {
     const { user } = useAuth();
 
     useEffect(() => {
-        // Inicializimi i socket
+        // Initialize socket connection
         const newSocket = io('http://localhost:5000', {
             auth: {
                 token: localStorage.getItem('token')
@@ -23,40 +23,44 @@ const ChatWindow = ({ receiverId, receiverName, onClose }) => {
 
         setSocket(newSocket);
 
-        // Marrja e mesazheve të mëparshme
-        fetchMessages();
-
-        return () => newSocket.close();
-    }, [receiverId]);
-
-    useEffect(() => {
-        if (!socket) return;
-
-        socket.on('newMessage', (message) => {
-            setMessages(prev => [...prev, message]);
+        // Socket event listeners
+        newSocket.on('message', (message) => {
+            if ((message.sender === receiverId || message.receiver === receiverId) ||
+                (receiverId === 'admin' && message.receiver === 'admin')) {
+                setMessages(prev => [...prev, message]);
+            }
         });
 
-        socket.on('userTyping', ({ userId }) => {
+        newSocket.on('userTyping', ({ userId }) => {
             if (userId === receiverId) {
                 setIsTyping(true);
             }
         });
 
-        socket.on('userStopTyping', ({ userId }) => {
+        newSocket.on('userStopTyping', ({ userId }) => {
             if (userId === receiverId) {
                 setIsTyping(false);
             }
         });
 
+        // Fetch existing messages
+        fetchMessages();
+
         return () => {
-            socket.off('newMessage');
-            socket.off('userTyping');
-            socket.off('userStopTyping');
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+            newSocket.close();
         };
-    }, [socket, receiverId]);
+    }, [receiverId]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     const fetchMessages = async () => {
         try {
+            // Always fetch messages with receiverId (which is userId)
             const response = await axios.get(`/api/chat/messages/${receiverId}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -75,8 +79,12 @@ const ChatWindow = ({ receiverId, receiverName, onClose }) => {
         if (!newMessage.trim()) return;
 
         try {
+            let toReceiverId = receiverId;
+            if (user && user.role !== 'admin') {
+                toReceiverId = 'admin';
+            }
             const response = await axios.post('/api/chat/send', {
-                receiverId,
+                receiverId: toReceiverId,
                 content: newMessage
             }, {
                 headers: {
@@ -85,12 +93,8 @@ const ChatWindow = ({ receiverId, receiverName, onClose }) => {
             });
 
             if (response.data.success) {
-                socket.emit('sendMessage', {
-                    receiverId,
-                    content: newMessage
-                });
-
                 setNewMessage('');
+                // Mesazhi do të vijë përmes socket event
             }
         } catch (error) {
             console.error('Gabim gjatë dërgimit të mesazhit:', error);
@@ -113,32 +117,25 @@ const ChatWindow = ({ receiverId, receiverName, onClose }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
     return (
-        <div className="flex flex-col h-full w-full bg-gradient-to-br from-blue-50 to-purple-100 rounded-2xl shadow-2xl border border-blue-100">
-            {/* Header */}
-            <div className="px-4 py-3 border-b bg-gradient-to-r from-blue-700 to-purple-600 text-white flex items-center gap-3 rounded-t-2xl shadow-md relative min-h-[56px]">
-                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/20">
-                    <FaRobot size={22} />
-                </div>
-                <div className="flex-1">
-                    <span className="font-bold text-lg tracking-wide block">{receiverName}</span>
-                    <span className="text-xs text-blue-100">Online</span>
+        <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center space-x-2">
+                    <FaRobot className="text-blue-600" size={20} />
+                    <span className="font-semibold">{receiverName}</span>
                 </div>
                 {onClose && (
                     <button
-                        className="absolute top-2 right-2 text-white text-xl font-bold bg-white/10 hover:bg-white/30 rounded-full w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                         onClick={onClose}
-                        aria-label="Mbyll chatin"
+                        className="text-gray-500 hover:text-gray-700"
                     >
-                        ×
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 )}
             </div>
-            {/* Messages */}
+
             <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-1 custom-scrollbar">
                 {messages.map((message, index) => {
                     const isOwnMessage = message.sender === String(user.id);
@@ -162,44 +159,43 @@ const ChatWindow = ({ receiverId, receiverName, onClose }) => {
                                     </div>
                                 )}
                             </div>
-                            <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                                <span className={`text-xs text-gray-400 mt-1 ${isOwnMessage ? 'ml-2' : 'mr-2'}`}>
-                                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                            </div>
                         </div>
                     );
                 })}
                 {isTyping && (
-                    <div className="text-xs text-blue-500 italic mb-2 animate-pulse">Duke shkruar...</div>
+                    <div className="flex items-center space-x-2 text-gray-500 text-sm">
+                        <span>{receiverName} po shkruan...</span>
+                        <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                    </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            {/* Input */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t bg-white/80 flex gap-2 items-center rounded-b-2xl shadow-inner">
-                <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleTyping}
-                    placeholder="Shkruani mesazhin tuaj..."
-                    className="flex-1 px-4 py-2 border-2 border-blue-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white shadow-sm transition-all duration-200"
-                />
-                <button
-                    type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-5 py-2 rounded-full font-bold shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                    Dërgo
-                </button>
+
+            <form onSubmit={handleSendMessage} className="p-4 border-t">
+                <div className="flex space-x-2">
+                    <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => {
+                            setNewMessage(e.target.value);
+                            handleTyping();
+                        }}
+                        onKeyPress={handleTyping}
+                        placeholder="Shkruani mesazhin tuaj..."
+                        className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        Dërgo
+                    </button>
+                </div>
             </form>
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 8px; background: #e0e7ff; border-radius: 8px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #a5b4fc; border-radius: 8px; }
-                @keyframes bounce-in-right { 0% { opacity: 0; transform: translateX(40px); } 100% { opacity: 1; transform: translateX(0); } }
-                @keyframes bounce-in-left { 0% { opacity: 0; transform: translateX(-40px); } 100% { opacity: 1; transform: translateX(0); } }
-                .animate-bounce-in-right { animation: bounce-in-right 0.4s; }
-                .animate-bounce-in-left { animation: bounce-in-left 0.4s; }
-            `}</style>
         </div>
     );
 };

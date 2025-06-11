@@ -10,7 +10,7 @@ import notificationService from './notification.js';
 export const setupWebSocket = (app) => {
     const io = new Server(app, {
         cors: {
-            origin: process.env.CLIENT_URL || 'http://localhost:3000',
+            origin: ['http://localhost:3000', 'http://127.0.0.1:3002'],
             methods: ['GET', 'POST'],
             credentials: true
         }

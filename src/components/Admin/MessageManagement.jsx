@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from '../../config/axios';
+import { io } from 'socket.io-client';
 
 const MessageManagement = () => {
     const [conversations, setConversations] = useState([]);
@@ -8,7 +9,33 @@ const MessageManagement = () => {
     const [replyText, setReplyText] = useState('');
     const [viewMode, setViewMode] = useState('list'); // 'list', 'review', 'chat'
     const [conversationMessages, setConversationMessages] = useState([]);
+    const [socket, setSocket] = useState(null);
     const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        // Initialize socket connection
+        const newSocket = io('http://localhost:5000', {
+            auth: {
+                token: localStorage.getItem('token')
+            }
+        });
+
+        setSocket(newSocket);
+
+        // Socket event listeners
+        newSocket.on('message', (message) => {
+            if (selectedConversation && 
+                (message.sender === selectedConversation._id || 
+                 message.receiver === selectedConversation._id)) {
+                setConversationMessages(prev => [...prev, message]);
+            }
+            fetchConversations(); // Refresh conversations list
+        });
+
+        return () => {
+            newSocket.close();
+        };
+    }, [selectedConversation]);
 
     useEffect(() => {
         fetchConversations();
@@ -37,6 +64,7 @@ const MessageManagement = () => {
     };
 
     const fetchConversationMessages = async (conversationId) => {
+        // conversationId is always userId
         try {
             const response = await axios.get(`/api/chat/messages/${conversationId}`, {
                 headers: {
@@ -45,6 +73,7 @@ const MessageManagement = () => {
             });
             setConversationMessages(response.data.data);
         } catch (error) {
+            console.error('Gabim gjatë marrjes së mesazheve:', error);
             setConversationMessages([]);
         }
     };
@@ -66,19 +95,28 @@ const MessageManagement = () => {
         setConversationMessages([]);
     };
 
-    const handleReply = async () => {
+    const handleReply = async (e) => {
+        e.preventDefault();
+        if (!replyText.trim()) return;
+
+        // Always use userId for receiverId
+        const userId = selectedConversation.user?._id || selectedConversation._id;
+
         try {
-            await axios.post('/api/chat/send', {
-                receiverId: selectedConversation._id,
+            const response = await axios.post('/api/chat/send', {
+                receiverId: userId,
                 content: replyText
             }, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setReplyText('');
-            await fetchConversationMessages(selectedConversation._id);
-            fetchConversations();
+
+            if (response.data.success) {
+                setReplyText('');
+                await fetchConversationMessages(userId);
+                fetchConversations();
+            }
         } catch (error) {
             console.error('Gabim gjatë dërgimit të përgjigjes:', error);
         }
@@ -93,8 +131,11 @@ const MessageManagement = () => {
                 }
             });
             fetchConversations();
+            if (selectedConversation && selectedConversation._id === conversationId) {
+                handleCloseDetails();
+            }
         } catch (error) {
-            alert('Gabim gjatë fshirjes së bisedës.');
+            console.error('Gabim gjatë fshirjes së bisedës:', error);
         }
     };
 
@@ -131,7 +172,7 @@ const MessageManagement = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {conversations.map(conversation => (
-                                <tr key={conversation._id}>
+                                <tr key={conversation._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {conversation.user ? 
                                             `${conversation.user.firstName} ${conversation.user.lastName}` :
@@ -209,7 +250,7 @@ const MessageManagement = () => {
                                 </div>
                             )}
                             {viewMode === 'chat' && (
-                                <form onSubmit={e => { e.preventDefault(); handleReply(); }} className="flex flex-col gap-2 px-4 py-3">
+                                <form onSubmit={handleReply} className="flex flex-col gap-2 px-4 py-3">
                                     <textarea
                                         value={replyText}
                                         onChange={e => setReplyText(e.target.value)}

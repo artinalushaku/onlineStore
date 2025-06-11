@@ -29,16 +29,16 @@ const Chat = () => {
 
     useEffect(() => {
         const checkExistingConversation = async () => {
-            const savedId = localStorage.getItem(CHAT_CONVERSATION_KEY);
-            if (savedId) {
+            if (user && user.role !== 'admin') {
+                localStorage.setItem(CHAT_CONVERSATION_KEY, user.id);
                 try {
-                    const response = await axios.get(`/api/chat/messages/${savedId}`, {
+                    const response = await axios.get(`/api/chat/messages/${user.id}`, {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem('token')}`
                         }
                     });
                     if (response.data.success && response.data.data.length > 0) {
-                        setConversationId(savedId);
+                        setConversationId(user.id);
                         setShowChatWindow(true);
                     } else {
                         localStorage.removeItem(CHAT_CONVERSATION_KEY);
@@ -78,15 +78,11 @@ const Chat = () => {
     const handleSendFirstMessage = async (e) => {
         e.preventDefault();
         if (!firstMessage.trim()) return;
-        if (!admin || !admin.id) {
-            setError('Nuk ka admin të disponueshëm për të marrë mesazhin.');
-            return;
-        }
         setSending(true);
         setError('');
         try {
             const response = await axios.post('/api/chat/send', {
-                receiverId: admin.id,
+                receiverId: 'admin',
                 content: firstMessage
             }, {
                 headers: {
@@ -95,8 +91,8 @@ const Chat = () => {
             });
             
             if (response.data && response.data.data) {
-                localStorage.setItem(CHAT_CONVERSATION_KEY, admin.id);
-                setConversationId(admin.id);
+                localStorage.setItem(CHAT_CONVERSATION_KEY, user.id);
+                setConversationId(user.id);
                 setShowChatWindow(true);
                 setShowFirstMessageForm(false);
             } else {
