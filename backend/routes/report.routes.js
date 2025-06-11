@@ -10,5 +10,6 @@ router.use(authMiddleware.restrictTo('admin'));
 
 // Route to generate a report
 router.post('/generate', reportController.generateReport);
+router.get('/customers', reportController.getCustomersReport);
 
 export default router; 

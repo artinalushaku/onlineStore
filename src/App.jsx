@@ -1,6 +1,6 @@
 // src/App.jsx - Updated with doctor management routes
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -52,6 +52,9 @@ import ProductRecommendations from './components/Products/ProductRecommendations
 import CategoryDetails from './components/Categories/CategoryDetails';
 import CartPage from './components/Cart/CartPage';
 import Chat from './components/Chat/Chat';
+import OrderSuccess from './components/Checkout/OrderSuccess';
+import OrderList from './components/Orders/OrderList';
+import OrderDetails from './components/Orders/OrderDetails';
 
 // Admin routes
 const AdminRoutes = () => (
@@ -80,7 +83,6 @@ const UserRoutes = () => (
     <Routes>
       <Route path="/profile" element={<UserProfile />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/orders" element={<UserOrders />} />
       <Route path="/wishlist" element={<Wishlist />} />
     </Routes>
   </ProtectedRoute>
@@ -109,6 +111,7 @@ function App() {
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/invoice/:id" element={<Invoice />} />
+                <Route path="/order-success/:id" element={<OrderSuccess />} />
                 <Route path="/admin/*" element={<AdminRoutes />} />
                 <Route path="/user/*" element={<UserRoutes />} />
                 <Route path="/advanced-search" element={<AdvancedSearch />} />
@@ -118,6 +121,14 @@ function App() {
                     <UserProfile />
                   </ProtectedRoute>
                 } />
+                <Route path="/orders" element={
+                  <ProtectedRoute allowedRoles={['customer', 'admin']}>
+                    <UserOrders />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<OrderList />} />
+                  <Route path=":orderId" element={<OrderDetails />} />
+                </Route>
               </Routes>
             </main>
             <Footer />

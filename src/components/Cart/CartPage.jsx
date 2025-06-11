@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../../config/axios';
 
 const CartPage = () => {
@@ -64,6 +64,35 @@ const CartPage = () => {
         navigate('/checkout');
     };
 
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
+                } catch {
+                    return '';
+                }
+            }
+            return images;
+        }
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -109,13 +138,17 @@ const CartPage = () => {
                 <div className="md:col-span-2">
                     {cartItems.map(item => (
                         <div key={item.productId} className="flex items-center border-b py-4">
-                            <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-24 h-24 object-cover rounded"
-                            />
+                            <Link to={`/products/${item.productId}`}>
+                                <img
+                                    src={getImageSrc(getFirstImage(item.image))}
+                                    alt={item.name}
+                                    className="w-24 h-24 object-cover rounded"
+                                />
+                            </Link>
                             <div className="ml-4 flex-1">
-                                <h3 className="font-semibold">{item.name}</h3>
+                                <Link to={`/products/${item.productId}`}>
+                                    <h3 className="font-semibold">{item.name}</h3>
+                                </Link>
                                 <p className="text-gray-600">{item.price}€</p>
                                 <div className="flex items-center mt-2">
                                     <button

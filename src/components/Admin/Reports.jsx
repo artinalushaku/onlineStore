@@ -78,8 +78,6 @@ const Reports = () => {
                             <option value="sales">Shitjet</option>
                             <option value="products">Produktet</option>
                             <option value="customers">Klientët</option>
-                            <option value="inventory">Inventari</option>
-                            <option value="revenue">Të Ardhurat</option>
                         </select>
                     </div>
 
@@ -93,8 +91,6 @@ const Reports = () => {
                             className="input w-full"
                         >
                             <option value="pdf">PDF</option>
-                            <option value="excel">Excel</option>
-                            <option value="csv">CSV</option>
                         </select>
                     </div>
 
@@ -150,8 +146,6 @@ const Reports = () => {
                         {reportType === 'sales' && 'Raporti i Shitjeve'}
                         {reportType === 'products' && 'Raporti i Produkteve'}
                         {reportType === 'customers' && 'Raporti i Klientëve'}
-                        {reportType === 'inventory' && 'Raporti i Inventarit'}
-                        {reportType === 'revenue' && 'Raporti i Të Ardhurave'}
                     </h2>
 
                     {reportType === 'sales' && (
@@ -278,117 +272,6 @@ const Reports = () => {
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
-                    )}
-
-                    {reportType === 'inventory' && (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Produkti
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Kategoria
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Në Stok
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Çmimi
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Statusi
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {reportData.map((item) => (
-                                        <tr key={item.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {item.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {item.category}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {item.stock}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {item.price}€
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                    item.stock > 10 ? 'bg-green-100 text-green-800' :
-                                                    item.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {item.stock > 10 ? 'Në Stok' :
-                                                     item.stock > 0 ? 'Pak Në Stok' :
-                                                     'Jashtë Stokut'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-
-                    {reportType === 'revenue' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-gray-50 rounded-lg p-6">
-                                <h3 className="text-lg font-semibold mb-4">
-                                    Të Ardhurat sipas Kategorive
-                                </h3>
-                                <div className="space-y-4">
-                                    {reportData.categories.map((category) => (
-                                        <div key={category.name}>
-                                            <div className="flex justify-between mb-1">
-                                                <span className="text-sm font-medium">
-                                                    {category.name}
-                                                </span>
-                                                <span className="text-sm">
-                                                    {category.revenue}€
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                                <div
-                                                    className="bg-primary h-2 rounded-full"
-                                                    style={{ width: `${(category.revenue / reportData.totalRevenue) * 100}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-50 rounded-lg p-6">
-                                <h3 className="text-lg font-semibold mb-4">
-                                    Të Ardhurat sipas Muajve
-                                </h3>
-                                <div className="space-y-4">
-                                    {reportData.monthly.map((month) => (
-                                        <div key={month.month}>
-                                            <div className="flex justify-between mb-1">
-                                                <span className="text-sm font-medium">
-                                                    {month.month}
-                                                </span>
-                                                <span className="text-sm">
-                                                    {month.revenue}€
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                                <div
-                                                    className="bg-primary h-2 rounded-full"
-                                                    style={{ width: `${(month.revenue / reportData.totalRevenue) * 100}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
                     )}
                 </div>

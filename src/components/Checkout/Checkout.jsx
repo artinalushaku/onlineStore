@@ -4,6 +4,8 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from '../../config/axios';
 import { FaMapMarkerAlt, FaTruck, FaReceipt } from 'react-icons/fa';
+import SavedAddresses from './SavedAddresses';
+import AddressForm from './AddressForm';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -13,21 +15,18 @@ const Checkout = () => {
     const [error, setError] = useState(null);
     const [shippingMethods, setShippingMethods] = useState([]);
     const [selectedShipping, setSelectedShipping] = useState(null);
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        address1: '',
-        city: '',
-        postalCode: '',
-        country: '',
-        phone: ''
-    });
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [showAddressForm, setShowAddressForm] = useState(false);
+    const [discountCode, setDiscountCode] = useState('');
+    const [discountAmount, setDiscountAmount] = useState(0);
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [couponError, setCouponError] = useState('');
 
     // Calculate totals
     const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shippingCost = selectedShipping ? 
         Number(shippingMethods.find(m => m.id === selectedShipping)?.price) || 0 : 0;
-    const total = subtotal + shippingCost;
+    const total = subtotal + shippingCost - discountAmount;
 
     useEffect(() => {
         fetchShippingMethods();
@@ -46,27 +45,69 @@ const Checkout = () => {
         }
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    const handleAddressSelect = (address) => {
+        setSelectedAddress(address);
+        setShowAddressForm(false);
+    };
+
+    const handleAddNewAddress = () => {
+        setShowAddressForm(true);
+        setSelectedAddress(null);
+    };
+
+    const handleAddressSubmit = async (addressData) => {
+        try {
+            const response = await axios.post('/api/addresses', {
+                ...addressData,
+                addressType: 'shipping'
+            });
+            setSelectedAddress(response.data);
+            setShowAddressForm(false);
+        } catch (error) {
+            setError('Could not save address');
+        }
     };
 
     const validateForm = () => {
-        const requiredFields = ['firstName', 'lastName', 'address1', 'city', 'postalCode', 'country', 'phone'];
-        for (const field of requiredFields) {
-            if (!formData[field]) {
-                setError(`Please fill in ${field}`);
+        if (!selectedAddress) {
+            setError('Please select or add a shipping address');
                 return false;
-            }
         }
         if (!selectedShipping) {
             setError('Please select a shipping method');
             return false;
         }
         return true;
+    };
+
+    const handleApplyCoupon = async () => {
+        setCouponError('');
+        setDiscountAmount(0);
+        setAppliedCoupon(null);
+        if (!discountCode) return;
+        try {
+            // Validate coupon with backend
+            const response = await axios.post('/api/coupons/validate', {
+                code: discountCode,
+                cartTotal: subtotal
+            });
+            if (response.data.valid && response.data.amount > 0) {
+                setDiscountAmount(response.data.amount);
+                setAppliedCoupon(discountCode);
+                setCouponError('');
+            } else {
+                setCouponError('Kuponi nuk është i vlefshëm ose nuk plotëson kushtet.');
+            }
+        } catch (err) {
+            setCouponError(err.response?.data?.message || 'Kuponi nuk është i vlefshëm.');
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setDiscountCode('');
+        setDiscountAmount(0);
+        setAppliedCoupon(null);
+        setCouponError('');
     };
 
     const handleSubmit = async (e) => {
@@ -77,14 +118,15 @@ const Checkout = () => {
         try {
             const orderData = {
                 shipping: {
-                    address: formData,
-                    method: selectedShipping
+                    method: selectedShipping,
+                    address: selectedAddress
                 },
-                paymentMethod: 'cash' // Default to cash for now
+                paymentMethod: 'cash',
+                discountCode: appliedCoupon || ''
             };
             const response = await axios.post('/api/orders', orderData);
             clearCart();
-            navigate(`/order-confirmation/${response.data.id}`);
+            navigate(`/order-success/${response.data.id}`);
         } catch (error) {
             setError(error.response?.data?.message || 'Error placing order');
             setLoading(false);
@@ -118,90 +160,18 @@ const Checkout = () => {
                             </span>
                             <h2 className="text-xl font-semibold text-blue-900">Shipping Information</h2>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">First Name</label>
-                                    <input
-                                        type="text"
-                                        name="firstName"
-                                        value={formData.firstName}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                                    <input
-                                        type="text"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Address</label>
-                                <input
-                                    type="text"
-                                    name="address1"
-                                    value={formData.address1}
-                                    onChange={handleChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">City</label>
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Postal Code</label>
-                                    <input
-                                        type="text"
-                                        name="postalCode"
-                                        value={formData.postalCode}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Country</label>
-                                    <input
-                                        type="text"
-                                        name="country"
-                                        value={formData.country}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Phone</label>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                            </div>
+
+                        {showAddressForm ? (
+                            <AddressForm 
+                                onSubmit={handleAddressSubmit}
+                                onCancel={() => setShowAddressForm(false)}
+                            />
+                        ) : (
+                            <SavedAddresses 
+                                onSelectAddress={handleAddressSelect}
+                                onAddNewClick={handleAddNewAddress}
+                            />
+                        )}
 
                             <div className="mt-6">
                                 <div className="flex items-center mb-4 gap-3">
@@ -237,52 +207,73 @@ const Checkout = () => {
                             )}
                             <button
                                 type="submit"
-                                disabled={loading}
-                                className={`w-full py-3 px-4 rounded-xl text-white font-medium text-lg shadow transition-colors duration-150
-                                    ${loading ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'}`}
+                            disabled={loading || !selectedAddress}
+                            onClick={handleSubmit}
+                            className={`w-full mt-6 py-3 px-4 rounded-xl text-white font-medium text-lg shadow transition-colors duration-150
+                                ${loading || !selectedAddress ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'}`}
                             >
                                 {loading ? 'Processing...' : 'Place Order'}
                             </button>
-                        </form>
                     </div>
                 </div>
 
                 {/* Right Column - Order Summary */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white rounded-2xl shadow-xl p-8 sticky top-8">
-                        <div className="flex items-center mb-4 gap-3">
+                    <div className="bg-white rounded-2xl shadow-xl p-8">
+                        <div className="flex items-center mb-6 gap-3">
                             <span className="bg-blue-100 text-blue-700 rounded-full p-2">
                                 <FaReceipt size={20} />
                             </span>
                             <h2 className="text-xl font-semibold text-blue-900">Order Summary</h2>
                         </div>
-                        <div className="mb-4">
+                        
+                        <div className="space-y-4">
                             {cart.items.map(item => (
-                                <div key={item.productId} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                                    <div className="flex items-center gap-2">
-                                        {item.image && (
-                                            <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
-                                        )}
+                                <div key={item.id} className="flex justify-between items-center">
                                         <div>
-                                            <div className="font-medium text-blue-900">{item.name}</div>
-                                            <div className="text-xs text-gray-500">Qty: {item.quantity}</div>
-                                        </div>
+                                        <p className="font-medium">{item.name}</p>
+                                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                                     </div>
-                                    <div className="font-medium">{(item.price * item.quantity).toFixed(2)}€</div>
+                                    <p className="font-medium">{(item.price * item.quantity).toFixed(2)}€</p>
                                 </div>
                             ))}
-                        </div>
-                        <div className="space-y-4">
+                            
+                            <div className="border-t pt-4 space-y-2">
                             <div className="flex justify-between">
-                                <span>Subtotal</span>
+                                    <span className="text-gray-600">Subtotal</span>
                                 <span>{subtotal.toFixed(2)}€</span>
                             </div>
                             <div className="flex justify-between">
-                                <span>Shipping</span>
+                                    <span className="text-gray-600">Shipping</span>
                                 <span>{shippingCost.toFixed(2)}€</span>
                             </div>
-                            <div className="border-t pt-4">
-                                <div className="flex justify-between font-semibold">
+                                {appliedCoupon && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-green-700">Zbritje ({appliedCoupon})</span>
+                                        <span className="text-green-700">- {discountAmount.toFixed(2)}€</span>
+                                        <button onClick={handleRemoveCoupon} className="ml-2 text-xs text-red-500 underline">Hiq</button>
+                                    </div>
+                                )}
+                                {!appliedCoupon && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <input
+                                            type="text"
+                                            value={discountCode}
+                                            onChange={e => setDiscountCode(e.target.value)}
+                                            placeholder="Vendos kodin e kuponit"
+                                            className="input flex-1"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleApplyCoupon}
+                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                        >
+                                            Apliko
+                                        </button>
+                                    </div>
+                                )}
+                                {couponError && <div className="text-red-500 text-xs mt-1">{couponError}</div>}
+                                <div className="flex justify-between font-bold text-lg">
                                     <span>Total</span>
                                     <span>{total.toFixed(2)}€</span>
                                 </div>

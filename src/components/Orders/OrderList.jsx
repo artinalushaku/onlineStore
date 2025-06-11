@@ -11,10 +11,6 @@ const OrderList = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
 
-    useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
-
     const fetchOrders = async () => {
         try {
             const params = new URLSearchParams({
@@ -23,7 +19,7 @@ const OrderList = () => {
                 date: dateFilter !== 'all' ? dateFilter : ''
             });
 
-            const response = await axios.get(`/api/orders?${params}`, {
+            const response = await axios.get(`/api/orders/me?${params}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -38,6 +34,11 @@ const OrderList = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchOrders();
+        // eslint-disable-next-line
+    }, [currentPage, statusFilter, dateFilter]);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -106,9 +107,8 @@ const OrderList = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-6">Porositë e Mia</h1>
-
+        <div className="max-w-5xl mx-auto mt-10 bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8">
+            <h1 className="text-3xl font-extrabold mb-8 text-gray-900 tracking-tight">Porositë e Mia</h1>
             <div className="mb-6 flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -152,77 +152,82 @@ const OrderList = () => {
                     </Link>
                 </div>
             ) : (
-                <>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th className="py-2 px-4 border-b">ID e Porosisë</th>
-                                    <th className="py-2 px-4 border-b">Data</th>
-                                    <th className="py-2 px-4 border-b">Totali</th>
-                                    <th className="py-2 px-4 border-b">Statusi</th>
-                                    <th className="py-2 px-4 border-b">Veprime</th>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full rounded-xl overflow-hidden shadow-xl">
+                        <thead className="bg-gradient-to-r from-blue-100 to-purple-100">
+                            <tr>
+                                <th className="py-3 px-6 text-left font-semibold text-gray-700">#</th>
+                                <th className="py-3 px-6 text-left font-semibold text-gray-700">Data</th>
+                                <th className="py-3 px-6 text-left font-semibold text-gray-700">Totali</th>
+                                <th className="py-3 px-6 text-left font-semibold text-gray-700">Statusi</th>
+                                <th className="py-3 px-6 text-left font-semibold text-gray-700">Veprime</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orders.map(order => (
+                                <tr key={order.id} className="hover:bg-blue-50 transition border-b border-gray-100">
+                                    <td className="py-3 px-6 font-mono text-lg text-blue-700">#{order.id}</td>
+                                    <td className="py-3 px-6">{new Date(order.createdAt).toLocaleDateString()}</td>
+                                    <td className="py-3 px-6 font-bold text-green-600">{Number(order.totalAmount ?? order.total).toFixed(2)}€</td>
+                                    <td className="py-3 px-6">
+                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm
+                                            ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 animate-pulse' :
+                                              order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                              order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                              'bg-gray-100 text-gray-800'}`}>
+                                            {order.status === 'pending' && <span className="mr-1">⏳</span>}
+                                            {order.status === 'completed' && <span className="mr-1">✅</span>}
+                                            {order.status === 'cancelled' && <span className="mr-1">❌</span>}
+                                            {getStatusText(order.status)}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-6">
+                                        <Link
+                                            to={`/orders/${order.id}`}
+                                            className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition"
+                                            title="Shiko Detajet"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25m0 0A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25V9m7.5 0v10.5A2.25 2.25 0 0113.5 21h-3a2.25 2.25 0 01-2.25-2.25V9m7.5 0H6.75" />
+                                            </svg>
+                                            Shiko
+                                        </Link>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {orders.map(order => (
-                                    <tr key={order.id}>
-                                        <td className="py-2 px-4 border-b">#{order.id}</td>
-                                        <td className="py-2 px-4 border-b">
-                                            {new Date(order.createdAt).toLocaleDateString()}
-                                        </td>
-                                        <td className="py-2 px-4 border-b">{order.total.toFixed(2)}€</td>
-                                        <td className="py-2 px-4 border-b">
-                                            <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(order.status)}`}>
-                                                {getStatusText(order.status)}
-                                            </span>
-                                        </td>
-                                        <td className="py-2 px-4 border-b">
-                                            <Link
-                                                to={`/orders/${order.id}`}
-                                                className="text-primary hover:underline"
-                                            >
-                                                Shiko Detajet
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {totalPages > 1 && (
-                        <div className="mt-6 flex justify-center">
-                            <nav className="flex items-center space-x-2">
-                                <button
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                    className="px-3 py-1 rounded border disabled:opacity-50"
-                                >
-                                    Para
-                                </button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <button
-                                        key={page}
-                                        onClick={() => handlePageChange(page)}
-                                        className={`px-3 py-1 rounded border ${
-                                            currentPage === page ? 'bg-primary text-white' : ''
-                                        }`}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                    className="px-3 py-1 rounded border disabled:opacity-50"
-                                >
-                                    Pas
-                                </button>
-                            </nav>
-                        </div>
-                    )}
-                </>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+            {totalPages > 1 && (
+                <div className="mt-8 flex justify-center">
+                    <nav className="flex items-center space-x-2">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 rounded-lg border bg-white shadow disabled:opacity-50"
+                        >
+                            &larr;
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                                key={page}
+                                onClick={() => handlePageChange(page)}
+                                className={`px-4 py-2 rounded-lg border shadow font-semibold transition-all duration-150
+                                    ${currentPage === page ? 'bg-blue-600 text-white scale-110' : 'bg-white text-blue-700 hover:bg-blue-100'}`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 rounded-lg border bg-white shadow disabled:opacity-50"
+                        >
+                            &rarr;
+                        </button>
+                    </nav>
+                </div>
             )}
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -60,6 +60,35 @@ const Wishlist = () => {
         }
     };
 
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
+                } catch {
+                    return '';
+                }
+            }
+            return images;
+        }
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -86,13 +115,17 @@ const Wishlist = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {wishlistItems.map((item) => (
                         <div key={item.productId} className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-full h-48 object-cover"
-                            />
+                            <Link to={`/products/${item.productId}`}>
+                                <img
+                                    src={getImageSrc(getFirstImage(item.image))}
+                                    alt={item.name}
+                                    className="w-full h-48 object-cover"
+                                />
+                            </Link>
                             <div className="p-4">
-                                <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
+                                <Link to={`/products/${item.productId}`}>
+                                    <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
+                                </Link>
                                 <p className="text-gray-600 mb-4">{item.price}€</p>
                                 <div className="flex justify-between">
                                     <button

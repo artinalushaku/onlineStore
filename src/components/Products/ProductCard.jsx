@@ -64,20 +64,30 @@ const ProductCard = ({ product }) => {
         }
     };
 
+    // Funksion ndihmës për path-in e imazhit
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-            <Link to={`/products/${productId}`} className="block">
-                <div className="relative aspect-[4/3]">
+        <div className="bg-white/30 backdrop-blur-lg border border-white/20 rounded-3xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl flex flex-col">
+            <Link to={`/products/${productId}`} className="block group relative">
+                <div className="relative aspect-[4/3] overflow-hidden">
                     <img 
-                        src={imageSrc} 
+                        src={getImageSrc(imageSrc)} 
                         alt={name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     {discount > 0 && (
-                        <div className="absolute top-2 right-2">
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full">
-                                -{discount}%
-                            </span>
+                        <div className="absolute top-4 left-4 bg-red-600 text-white font-bold px-3 py-1 rounded-full text-xs shadow-md">
+                            -{discount}%
                         </div>
                     )}
                     {stock === 0 && (
@@ -86,8 +96,8 @@ const ProductCard = ({ product }) => {
                         </div>
                     )}
                 </div>
-                <div className="p-3">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 hover:text-indigo-600 transition-colors duration-200">
+                <div className="p-6 flex flex-col gap-3 flex-1">
+                    <h3 className="text-xl font-bold mb-1 text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
                         {name}
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
@@ -96,40 +106,38 @@ const ProductCard = ({ product }) => {
                                 <span className="text-gray-400 line-through text-xs">
                                     {price}€
                                 </span>
-                                <span className="text-base font-bold text-red-500">
+                                <span className="text-lg font-bold text-red-500">
                                     {discountedPrice}€
                                 </span>
                             </>
                         ) : (
-                            <span className="text-base font-bold text-gray-800">
+                            <span className="text-lg font-bold text-gray-800">
                                 {price}€
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <div className="flex text-yellow-400">
-                                {[...Array(5)].map((_, i) => (
-                                    <svg
-                                        key={i}
-                                        className={`w-3 h-3 ${i < Math.floor(rating) ? 'fill-current' : 'stroke-current fill-none'}`}
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                                        />
-                                    </svg>
-                                ))}
-                            </div>
-                            <span className="text-gray-500 text-xs ml-1">
-                                ({rating})
-                            </span>
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="flex text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                                <svg
+                                    key={i}
+                                    className={`w-4 h-4 ${i < Math.floor(rating) ? 'fill-current' : 'stroke-current fill-none'}`}
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                    />
+                                </svg>
+                            ))}
                         </div>
+                        <span className="text-gray-500 text-xs ml-1">
+                            ({rating})
+                        </span>
                         {stock > 0 && (
-                            <span className="text-green-500 text-xs font-medium">
+                            <span className="text-green-500 text-xs font-medium ml-auto">
                                 Në Gjendje
                             </span>
                         )}
@@ -139,11 +147,12 @@ const ProductCard = ({ product }) => {
             {stock > 0 && (
                 <button
                     onClick={handleAddToCart}
-                    className="w-full py-1.5 bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors duration-200"
+                    className="mt-auto w-full py-2 bg-gradient-to-r from-primary to-blue-500 text-white font-semibold rounded-xl shadow hover:from-blue-500 hover:to-primary transition-all duration-300 text-base tracking-wide backdrop-blur-md"
                 >
                     Shto në Shportë
                 </button>
             )}
+            <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-primary transition-all duration-300 pointer-events-none"></div>
         </div>
     );
 };

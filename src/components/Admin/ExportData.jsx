@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 const ExportData = () => {
     const [loading, setLoading] = useState(false);
     const [dataType, setDataType] = useState('products');
-    const [format, setFormat] = useState('excel');
+    const [format, setFormat] = useState('pdf');
 
     const handleExport = async () => {
         setLoading(true);
@@ -18,23 +17,12 @@ const ExportData = () => {
                 }
             });
 
-            if (format === 'excel') {
-                exportToExcel(response.data);
-            } else {
-                exportToPDF(response.data);
-            }
+            exportToPDF(response.data);
         } catch (error) {
             console.error('Gabim gjatë eksportimit të të dhënave:', error);
         } finally {
             setLoading(false);
         }
-    };
-
-    const exportToExcel = (data) => {
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-        XLSX.writeFile(workbook, `${dataType}_export.xlsx`);
     };
 
     const exportToPDF = (data) => {
@@ -81,20 +69,6 @@ const ExportData = () => {
                             <option value="users">Përdoruesit</option>
                             <option value="categories">Kategoritë</option>
                             <option value="payments">Pagesat</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Zgjidh Formatin
-                        </label>
-                        <select
-                            value={format}
-                            onChange={(e) => setFormat(e.target.value)}
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
-                        >
-                            <option value="excel">Excel</option>
-                            <option value="pdf">PDF</option>
                         </select>
                     </div>
                 </div>

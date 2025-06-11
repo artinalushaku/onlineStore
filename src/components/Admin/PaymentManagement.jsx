@@ -188,4 +188,4 @@ const PaymentManagement = () => {
     );
 };
 
-export default PaymentManagement; 
+export default PaymentManagement;

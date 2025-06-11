@@ -1,102 +1,128 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from '../../config/axios';
 
 const MessageManagement = () => {
-    const [messages, setMessages] = useState([]);
+    const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [selectedConversation, setSelectedConversation] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const [viewMode, setViewMode] = useState('list'); // 'list', 'review', 'chat'
+    const [conversationMessages, setConversationMessages] = useState([]);
+    const messagesEndRef = useRef(null);
 
     useEffect(() => {
-        fetchContactMessages();
+        fetchConversations();
     }, []);
 
-    const fetchContactMessages = async () => {
+    useEffect(() => {
+        // Auto-scroll to bottom when messages change
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [conversationMessages]);
+
+    const fetchConversations = async () => {
         try {
-            setLoading(true);
-            setError('');
-            const response = await axios.get('/api/contact/messages', {
+            const response = await axios.get('/api/chat/conversations', {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setMessages(response.data.data.filter(msg => !msg.deleted));
+            setConversations(response.data.data);
+            setLoading(false);
         } catch (error) {
-            console.error('Error fetching contact messages:', error);
-            setError('Gabim gjatë marrjes së mesazheve të kontaktit.');
-        } finally {
+            console.error('Gabim gjatë marrjes së bisedave:', error);
             setLoading(false);
         }
     };
 
-    const handleMarkAsRead = async (messageId) => {
+    const fetchConversationMessages = async (conversationId) => {
         try {
-            await axios.put(`/api/chat/messages/${messageId}/read`, {}, {
+            const response = await axios.get(`/api/chat/messages/${conversationId}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setMessages(prevMessages =>
-                prevMessages.map(msg =>
-                    msg._id === messageId ? { ...msg, read: true } : msg
-                )
-            );
+            setConversationMessages(response.data.data);
         } catch (error) {
-            console.error('Error marking message as read:', error);
-            setError('Gabim gjatë shënimit të mesazhit si të lexuar.');
+            setConversationMessages([]);
         }
     };
 
-    const handleDeleteMessage = async (messageId) => {
+    const handleViewConversation = async (conversation) => {
+        setSelectedConversation(conversation);
+        setViewMode('review');
+        await fetchConversationMessages(conversation._id);
+    };
+
+    const handleAcceptConversation = () => {
+        setViewMode('chat');
+    };
+
+    const handleCloseDetails = () => {
+        setSelectedConversation(null);
+        setReplyText('');
+        setViewMode('list');
+        setConversationMessages([]);
+    };
+
+    const handleReply = async () => {
         try {
-            await axios.put(`/api/contact/${messageId}/delete`, {}, {
+            await axios.post('/api/chat/send', {
+                receiverId: selectedConversation._id,
+                content: replyText
+            }, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setMessages(prevMessages => prevMessages.filter(msg => msg._id !== messageId));
+            setReplyText('');
+            await fetchConversationMessages(selectedConversation._id);
+            fetchConversations();
         } catch (error) {
-            console.error('Error deleting message:', error);
-            setError('Gabim gjatë fshirjes së mesazhit.');
+            console.error('Gabim gjatë dërgimit të përgjigjes:', error);
+        }
+    };
+
+    const handleDeleteConversation = async (conversationId) => {
+        if (!window.confirm('A jeni i sigurt që doni të fshini këtë bisedë?')) return;
+        try {
+            await axios.delete(`/api/chat/conversation/${conversationId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            fetchConversations();
+        } catch (error) {
+            alert('Gabim gjatë fshirjes së bisedës.');
         }
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="flex items-center justify-center min-h-screen text-red-500">
-                <p>{error}</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
             </div>
         );
     }
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Mesazhet e Kontaktit</h1>
+            <h1 className="text-3xl font-bold mb-8">Menaxhimi i Bisedave</h1>
 
-            {messages.length === 0 ? (
-                <div className="text-center text-gray-500 text-lg">
-                    Nuk ka mesazhe kontakti.
-                </div>
-            ) : (
+            {viewMode === 'list' && (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Mesazhi
+                                    Përdoruesi
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Mesazhi i Fundit
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Data
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Statusi
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Veprime
@@ -104,37 +130,112 @@ const MessageManagement = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {messages.map(message => (
-                                <tr key={message._id} className={message.read ? '' : 'bg-blue-50 font-semibold'}>
-                                    <td className="px-6 py-4 text-sm text-gray-900">
-                                        {message.content}
+                            {conversations.map(conversation => (
+                                <tr key={conversation._id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {conversation.user ? 
+                                            `${conversation.user.firstName} ${conversation.user.lastName}` :
+                                            'Përdorues i ri'
+                                        }
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(message.createdAt).toLocaleString()}
+                                        {conversation.lastMessage.content}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        {message.read ? <span className="text-green-600">Lexuar</span> : <span className="text-red-600">Pa lexuar</span>}
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {new Date(conversation.lastMessage.createdAt).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2 items-center">
-                                        {!message.read && (
-                                            <button
-                                                onClick={() => handleMarkAsRead(message._id)}
-                                                className="text-blue-600 hover:text-blue-900"
-                                            >
-                                                Shëno si të Lexuar
-                                            </button>
-                                        )}
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                         <button
-                                            onClick={() => handleDeleteMessage(message._id)}
+                                            onClick={() => handleViewConversation(conversation)}
+                                            className="text-primary-600 hover:text-primary-900"
+                                        >
+                                            Shiko
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteConversation(conversation._id)}
                                             className="text-red-600 hover:text-red-900"
                                         >
-                                            Fshij
+                                            Fshi
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {(viewMode === 'review' || viewMode === 'chat') && selectedConversation && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                Biseda me {selectedConversation.user ? `${selectedConversation.user.firstName} ${selectedConversation.user.lastName}` : 'Përdorues i ri'}
+                            </h3>
+                            <div className="mb-4 max-h-96 h-96 overflow-y-auto bg-gray-50 p-2 rounded">
+                                {conversationMessages.length > 0 ? (
+                                    conversationMessages.map((msg, idx) => (
+                                        <div
+                                            key={msg._id || idx}
+                                            className={`flex ${msg.sender === String(selectedConversation._id) ? 'justify-start' : 'justify-end'}`}
+                                        >
+                                            <div className={`px-3 py-2 rounded-lg mb-1 text-sm shadow
+                                                ${msg.sender === String(selectedConversation._id)
+                                                    ? 'bg-gray-200 text-gray-800'
+                                                    : 'bg-blue-500 text-white'}`}>
+                                                {msg.content}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-gray-400">Nuk ka mesazhe.</div>
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
+                            {viewMode === 'review' && (
+                                <div className="items-center px-4 py-3">
+                                    <button
+                                        onClick={handleAcceptConversation}
+                                        className="px-4 py-2 bg-primary-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
+                                    >
+                                        Prano dhe Përgjigju
+                                    </button>
+                                    <button
+                                        onClick={handleCloseDetails}
+                                        className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                    >
+                                        Mbyll
+                                    </button>
+                                </div>
+                            )}
+                            {viewMode === 'chat' && (
+                                <form onSubmit={e => { e.preventDefault(); handleReply(); }} className="flex flex-col gap-2 px-4 py-3">
+                                    <textarea
+                                        value={replyText}
+                                        onChange={e => setReplyText(e.target.value)}
+                                        className="w-full p-2 border rounded-md"
+                                        rows="3"
+                                        placeholder="Shkruani përgjigjen tuaj..."
+                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 bg-primary-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
+                                        >
+                                            Dërgo Përgjigjen
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCloseDetails}
+                                            className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                        >
+                                            Mbyll
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -165,4 +165,4 @@ const CartManagement = () => {
     );
 };
 
-export default CartManagement; 
+export default CartManagement;

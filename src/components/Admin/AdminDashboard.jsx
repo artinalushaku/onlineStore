@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaBoxOpen, FaClipboardList, FaUsers, FaTags, FaTruck, FaChartBar, FaThLarge, FaEnvelope } from 'react-icons/fa';
+import { FaBoxOpen, FaClipboardList, FaUsers, FaTags, FaTruck, FaChartBar, FaThLarge, FaHeart, FaStar, FaShoppingCart } from 'react-icons/fa';
 import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
 import UserManagement from './UserManagement';
@@ -8,16 +8,24 @@ import CouponManagement from './CouponManagement.jsx';
 import ShippingManagement from './ShippingManagement';
 import Reports from './Reports';
 import MessageManagement from './MessageManagement';
+import WishlistManagement from './WishlistManagement';
+import ReviewManagement from './ReviewManagement';
+import CartManagement from './CartManagement';
+import Statistics from './Statistics';
 
 const sections = [
+  { key: 'statistics', label: 'Statistikat', icon: <FaChartBar size={20} /> },
   { key: 'products', label: 'Produktet', icon: <FaBoxOpen size={20} /> },
   { key: 'orders', label: 'Porositë', icon: <FaClipboardList size={20} /> },
   { key: 'users', label: 'Përdoruesit', icon: <FaUsers size={20} /> },
   { key: 'categories', label: 'Kategoritë', icon: <FaThLarge size={20} /> },
   { key: 'coupons', label: 'Kuponat', icon: <FaTags size={20} /> },
   { key: 'shipping', label: 'Transporti', icon: <FaTruck size={20} /> },
+  { key: 'wishlists', label: 'Lista e Dëshirave', icon: <FaHeart size={20} /> },
+  { key: 'carts', label: 'Shportat', icon: <FaShoppingCart size={20} /> },
+  { key: 'reviews', label: 'Vlerësimet', icon: <FaStar size={20} /> },
   { key: 'reports', label: 'Raportet', icon: <FaChartBar size={20} /> },
-  { key: 'messages', label: 'Mesazhet', icon: <FaEnvelope size={20} /> },
+  { key: 'messages', label: 'Mesazhet', icon: <FaClipboardList size={20} /> },
 ];
 
 const AdminDashboard = () => {
@@ -37,10 +45,18 @@ const AdminDashboard = () => {
         return <CouponManagement />;
       case 'shipping':
         return <ShippingManagement />;
+      case 'wishlists':
+        return <WishlistManagement />;
+      case 'carts':
+        return <CartManagement />;
+      case 'reviews':
+        return <ReviewManagement />;
       case 'reports':
         return <Reports />;
       case 'messages':
         return <MessageManagement />;
+      case 'statistics':
+        return <Statistics />;
       default:
         return null;
     }

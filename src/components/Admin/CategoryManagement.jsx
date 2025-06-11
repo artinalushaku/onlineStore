@@ -194,4 +194,4 @@ const CategoryManagement = () => {
     );
 };
 
-export default CategoryManagement; 
+export default CategoryManagement;

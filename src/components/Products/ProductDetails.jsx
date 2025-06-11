@@ -194,6 +194,18 @@ const ProductDetails = () => {
         setSelectedImage((prev) => (prev - 1 + product.images.length) % product.images.length);
     };
 
+    // Funksion ndihmës për path-in e imazhit
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -250,17 +262,22 @@ const ProductDetails = () => {
             animate={{ opacity: 1 }}
             className="container mx-auto px-4 py-12"
         >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
                 {/* Image Gallery */}
                 <div className="space-y-6">
-                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                    <div className="relative aspect-square rounded-3xl overflow-hidden bg-white/30 backdrop-blur-lg border border-white/20 shadow-xl">
                         <img
-                            src={product.images[selectedImage]}
+                            src={getImageSrc(product.images[selectedImage])}
                             alt={product.name}
-                            className="w-full h-full object-cover cursor-zoom-in transition-transform duration-300 hover:scale-105"
+                            className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 hover:scale-105"
                             onClick={() => handleImageClick(selectedImage)}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300"></div>
+                        {product.discount > 0 && (
+                            <div className="absolute top-4 left-4 bg-red-600 text-white font-bold px-4 py-2 rounded-full text-base shadow-md">
+                                -{product.discount}%
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 hover:opacity-90 transition-opacity duration-300"></div>
                     </div>
                     <div className="grid grid-cols-5 gap-4">
                         {product.images.map((image, index) => (
@@ -268,13 +285,11 @@ const ProductDetails = () => {
                                 key={index}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className={`aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
-                                    selectedImage === index ? 'border-primary' : 'border-transparent'
-                                }`}
+                                className={`aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-300 ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}
                                 onClick={() => setSelectedImage(index)}
                             >
                                 <img
-                                    src={image}
+                                    src={getImageSrc(image)}
                                     alt={`${product.name} ${index + 1}`}
                                     className="w-full h-full object-cover"
                                 />
@@ -284,9 +299,11 @@ const ProductDetails = () => {
                 </div>
 
                 {/* Product Info */}
-                <div className="space-y-8">
+                <div className="space-y-10 bg-white/30 backdrop-blur-lg border border-white/20 rounded-3xl shadow-xl p-10">
                     <div>
-                        <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
+                        <h1 className="text-4xl font-extrabold mb-4 text-gray-900 drop-shadow-lg">
+                            {product.name}
+                        </h1>
                         <div className="flex items-center space-x-4 mb-6">
                             <div className="flex items-center text-yellow-400">
                                 {[...Array(5)].map((_, i) => (
@@ -294,18 +311,30 @@ const ProductDetails = () => {
                                 ))}
                             </div>
                             <span className="text-gray-600">({product.reviewCount} reviews)</span>
+                            {product.stock > 0 ? (
+                                <span className="ml-auto bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Në Gjendje</span>
+                            ) : (
+                                <span className="ml-auto bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Jashtë Gjendjes</span>
+                            )}
                         </div>
                         <p className="text-3xl font-bold text-primary mb-6">
-                            {product.price}€
+                            {product.discount > 0 ? (
+                                <>
+                                    <span className="line-through text-gray-400 mr-2">{product.price}€</span>
+                                    <span>{(product.price - (product.price * product.discount / 100)).toFixed(2)}€</span>
+                                </>
+                            ) : (
+                                <>{product.price}€</>
+                            )}
                         </p>
                     </div>
 
-                    <div className="prose max-w-none text-gray-600">
+                    <div className="prose max-w-none text-gray-700 text-lg">
                         <p>{product.description}</p>
                     </div>
 
                     <div className="flex items-center space-x-6">
-                        <div className="flex items-center border rounded-lg overflow-hidden">
+                        <div className="flex items-center border rounded-lg overflow-hidden bg-white/50">
                             <button
                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -325,8 +354,8 @@ const ProductDetails = () => {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={addToCart}
-                            disabled={addingToCart}
-                            className="flex-1 bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary-dark disabled:opacity-50 transition-colors flex items-center justify-center space-x-2"
+                            disabled={addingToCart || product.stock === 0}
+                            className="flex-1 bg-gradient-to-r from-primary to-blue-500 text-white px-8 py-3 rounded-xl hover:from-blue-500 hover:to-primary disabled:opacity-50 transition-colors flex items-center justify-center space-x-2 text-lg font-semibold shadow"
                         >
                             <FaShoppingCart />
                             <span>{addingToCart ? 'Duke shtuar...' : 'Shto në Shportë'}</span>
@@ -336,36 +365,16 @@ const ProductDetails = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={toggleWishlist}
-                            className={`p-3 rounded-full ${
-                                isInWishlist
-                                    ? 'text-red-500 bg-red-50'
-                                    : 'text-gray-400 bg-gray-50'
-                            } hover:bg-gray-100 transition-colors`}
+                            className={`p-3 rounded-full border-2 ${isInWishlist ? 'text-red-500 border-red-200 bg-red-50' : 'text-gray-400 border-gray-200 bg-gray-50'} hover:bg-gray-100 transition-colors`}
                         >
                             {isInWishlist ? <FaHeart /> : <FaRegHeart />}
                         </motion.button>
-                    </div>
-
-                    <div className="border-t pt-8">
-                        <h3 className="text-xl font-semibold mb-4">Detajet e Produktit</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <span className="text-gray-600">Kategoria</span>
-                                <p className="font-medium">{product.category}</p>
-                            </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <span className="text-gray-600">Stoku</span>
-                                <p className={`font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {product.stock > 0 ? `Në Gjendje (${product.stock})` : 'Jashtë Gjendjes'}
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Review Section */}
-            <div className="mt-16">
+            <div className="mt-20 max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-4">Komentet</h2>
                 <div className="border-b border-gray-200 mb-8"></div>
                 {/* Review Form */}
@@ -373,7 +382,7 @@ const ProductDetails = () => {
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-xl shadow p-4 mb-8 max-w-xl mx-auto"
+                        className="bg-white/70 rounded-2xl shadow p-6 mb-8 max-w-xl mx-auto backdrop-blur-lg"
                     >
                         <h3 className="text-lg font-semibold mb-3">Shkruaj një Koment</h3>
                         <form onSubmit={handleReviewSubmit} className="space-y-3">
@@ -467,7 +476,7 @@ const ProductDetails = () => {
                                 key={review._id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white rounded-xl shadow p-4 flex flex-col gap-2"
+                                className="bg-white/80 rounded-xl shadow p-4 flex flex-col gap-2 backdrop-blur-lg"
                             >
                                 <div className="flex items-center gap-3 mb-1">
                                     <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-base">
@@ -516,7 +525,7 @@ const ProductDetails = () => {
                     >
                         <div className="relative max-w-7xl max-h-[90vh] mx-4">
                             <img
-                                src={product.images[selectedImage]}
+                                src={getImageSrc(product.images[selectedImage])}
                                 alt={product.name}
                                 className="max-h-[90vh] object-contain"
                             />

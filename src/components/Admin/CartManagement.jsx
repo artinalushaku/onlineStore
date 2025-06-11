@@ -85,7 +85,7 @@ const CartManagement = () => {
                         {carts.map(cart => (
                             <tr key={cart._id}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {cart.user.name}
+                                    {cart.user ? cart.user.name : 'Anonim'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {cart.items.length}
@@ -126,13 +126,14 @@ const CartManagement = () => {
                             <div className="mt-2 px-7 py-3">
                                 <div className="mb-4">
                                     <h4 className="font-medium">Përdoruesi:</h4>
-                                    <p className="text-sm text-gray-600">{selectedCart.user.name}</p>
+                                    <p className="text-sm text-gray-600">{selectedCart.user ? selectedCart.user.name : 'Anonim'}</p>
+                                    <p className="text-sm text-gray-600">{selectedCart.user ? selectedCart.user.email : '—'}</p>
                                 </div>
                                 <div className="mb-4">
                                     <h4 className="font-medium">Produktet:</h4>
                                     {selectedCart.items.map((item, index) => (
                                         <div key={index} className="text-sm text-gray-600 mt-2">
-                                            <p>{item.product.name}</p>
+                                            <p>{item.name}</p>
                                             <p>Sasia: {item.quantity}</p>
                                             <p>Çmimi: {item.price}€</p>
                                         </div>
@@ -165,4 +166,4 @@ const CartManagement = () => {
     );
 };
 
-export default CartManagement; 
+export default CartManagement;

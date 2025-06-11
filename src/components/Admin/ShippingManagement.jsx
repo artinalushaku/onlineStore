@@ -4,6 +4,7 @@ import axios from '../../config/axios';
 
 const ShippingManagement = () => {
     const [shippingMethods, setShippingMethods] = useState([]);
+    const [countries, setCountries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingMethod, setEditingMethod] = useState(null);
     const [formData, setFormData] = useState({
@@ -12,11 +13,14 @@ const ShippingManagement = () => {
         estimatedDelivery: '',
         description: '',
         isActive: true,
-        isDefault: false
+        isDefault: false,
+        countries: []
     });
+    const [newCountry, setNewCountry] = useState('');
 
     useEffect(() => {
         fetchShippingMethods();
+        fetchCountries();
     }, []);
 
     const fetchShippingMethods = async () => {
@@ -25,9 +29,19 @@ const ShippingManagement = () => {
             setShippingMethods(response.data);
             setLoading(false);
         } catch (error) {
-            console.error('Gabim gjatë marrjes së metodave të transportit:', error);
-            toast.error('Gabim gjatë marrjes së metodave të transportit');
+            console.error('Error fetching shipping methods:', error);
+            toast.error('Error fetching shipping methods');
             setLoading(false);
+        }
+    };
+
+    const fetchCountries = async () => {
+        try {
+            const response = await axios.get('/api/countries');
+            setCountries(response.data);
+        } catch (error) {
+            console.error('Error fetching countries:', error);
+            toast.error('Error fetching countries');
         }
     };
 
@@ -39,6 +53,16 @@ const ShippingManagement = () => {
         }));
     };
 
+    const handleCountryChange = (e) => {
+        const { value, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            countries: checked 
+                ? [...prev.countries, value]
+                : prev.countries.filter(country => country !== value)
+        }));
+    };
+
     const handleEditClick = (method) => {
         setEditingMethod(method);
         setFormData({
@@ -47,42 +71,38 @@ const ShippingManagement = () => {
             estimatedDelivery: method.estimatedDelivery,
             description: method.description || '',
             isActive: method.isActive,
-            isDefault: method.isDefault
+            isDefault: method.isDefault,
+            countries: method.countries || []
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const methodData = {
-                ...formData,
-                countries: []
-            };
-
             if (editingMethod) {
-                await axios.put(`/api/shipping/${editingMethod.id}`, methodData);
-                toast.success('Metoda e transportit u përditësua me sukses');
+                await axios.put(`/api/shipping/${editingMethod.id}`, formData);
+                toast.success('Shipping method updated successfully');
             } else {
-                await axios.post('/api/shipping', methodData);
-                toast.success('Metoda e re e transportit u shtua me sukses');
+                await axios.post('/api/shipping', formData);
+                toast.success('New shipping method added successfully');
             }
             fetchShippingMethods();
             resetForm();
         } catch (error) {
-            console.error('Gabim gjatë ruajtjes së metodës së transportit:', error);
-            toast.error(error.response?.data?.message || 'Gabim gjatë ruajtjes së metodës së transportit');
+            console.error('Error saving shipping method:', error);
+            toast.error(error.response?.data?.message || 'Error saving shipping method');
         }
     };
 
     const handleDelete = async (shippingId) => {
-        if (window.confirm('A jeni të sigurt që dëshironi ta fshini këtë metodë transporti?')) {
+        if (window.confirm('Are you sure you want to delete this shipping method?')) {
             try {
                 await axios.delete(`/api/shipping/${shippingId}`);
-                toast.success('Metoda e transportit u fshi me sukses');
+                toast.success('Shipping method deleted successfully');
                 fetchShippingMethods();
             } catch (error) {
-                console.error('Gabim gjatë fshirjes së metodës së transportit:', error);
-                toast.error(error.response?.data?.message || 'Gabim gjatë fshirjes së metodës së transportit');
+                console.error('Error deleting shipping method:', error);
+                toast.error(error.response?.data?.message || 'Error deleting shipping method');
             }
         }
     };
@@ -94,9 +114,23 @@ const ShippingManagement = () => {
             estimatedDelivery: '',
             description: '',
             isActive: true,
-            isDefault: false
+            isDefault: false,
+            countries: []
         });
         setEditingMethod(null);
+    };
+
+    const handleAddCountry = async (e) => {
+        e.preventDefault();
+        if (!newCountry.trim()) return;
+        try {
+            await axios.post('/api/countries', { name: newCountry.trim() });
+            toast.success('Country added successfully');
+            setNewCountry('');
+            fetchCountries();
+        } catch (err) {
+            toast.error('Could not add country');
+        }
     };
 
     if (loading) {
@@ -109,17 +143,17 @@ const ShippingManagement = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Menaxhimi i Transportit</h1>
+            <h1 className="text-3xl font-bold mb-8">Shipping Management</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <h2 className="text-xl font-semibold mb-4">
-                        {editingMethod ? 'Edito Metodën e Transportit' : 'Shto Metodë të Re Transporti'}
+                        {editingMethod ? 'Edit Shipping Method' : 'Add New Shipping Method'}
                     </h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Emri i Metodës
+                                Method Name
                             </label>
                             <input
                                 type="text"
@@ -133,7 +167,7 @@ const ShippingManagement = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Çmimi (€)
+                                Price (€)
                             </label>
                             <input
                                 type="number"
@@ -149,7 +183,7 @@ const ShippingManagement = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Koha e Vlerësuar e Dërgesës
+                                Estimated Delivery Time
                             </label>
                             <input
                                 type="text"
@@ -157,14 +191,14 @@ const ShippingManagement = () => {
                                 value={formData.estimatedDelivery}
                                 onChange={handleInputChange}
                                 required
-                                placeholder="p.sh. 2-3 ditë"
+                                placeholder="e.g., 2-3 days"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Përshkrimi
+                                Description
                             </label>
                             <textarea
                                 name="description"
@@ -173,6 +207,26 @@ const ShippingManagement = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 rows="3"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Available Countries
+                            </label>
+                            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md">
+                                {countries.map(country => (
+                                    <label key={country.id} className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            value={country.name}
+                                            checked={formData.countries.includes(country.name)}
+                                            onChange={handleCountryChange}
+                                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-gray-700">{country.name}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="flex items-center space-x-4">
@@ -184,7 +238,7 @@ const ShippingManagement = () => {
                                     onChange={handleInputChange}
                                     className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
-                                <span className="ml-2 text-sm text-gray-700">Aktive</span>
+                                <span className="ml-2 text-sm text-gray-700">Active</span>
                             </label>
 
                             <label className="flex items-center">
@@ -195,7 +249,7 @@ const ShippingManagement = () => {
                                     onChange={handleInputChange}
                                     className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
-                                <span className="ml-2 text-sm text-gray-700">Metodë e Parazgjedhur</span>
+                                <span className="ml-2 text-sm text-gray-700">Default Method</span>
                             </label>
                         </div>
 
@@ -204,7 +258,7 @@ const ShippingManagement = () => {
                                 type="submit"
                                 className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                             >
-                                {editingMethod ? 'Ruaj Ndryshimet' : 'Shto Metodën'}
+                                {editingMethod ? 'Save Changes' : 'Add Method'}
                             </button>
                             {editingMethod && (
                                 <button
@@ -212,7 +266,7 @@ const ShippingManagement = () => {
                                     onClick={resetForm}
                                     className="flex-1 bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                                 >
-                                    Anulo
+                                    Cancel
                                 </button>
                             )}
                         </div>
@@ -220,7 +274,7 @@ const ShippingManagement = () => {
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold mb-4">Lista e Metodave të Transportit</h2>
+                    <h2 className="text-xl font-semibold mb-4">Shipping Methods List</h2>
                     <div className="space-y-4">
                         {shippingMethods.map(method => (
                             <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -229,46 +283,69 @@ const ShippingManagement = () => {
                                         <h3 className="font-medium">{method.name}</h3>
                                         {method.isDefault && (
                                             <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                                                Parazgjedhur
+                                                Default
                                             </span>
                                         )}
                                         {!method.isActive && (
                                             <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                                                Jo Aktive
+                                                Inactive
                                             </span>
                                         )}
                                     </div>
                                     <p className="text-sm text-gray-600 mt-1">{method.description}</p>
                                     <div className="mt-2 space-y-1">
                                         <p className="text-sm text-gray-600">
-                                            Çmimi: {method.price}€
+                                            Price: {method.price}€
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                            Koha e Vlerësuar: {method.estimatedDelivery}
+                                            Estimated Delivery: {method.estimatedDelivery}
                                         </p>
                                         <div className="text-sm text-gray-600">
-                                            <span>Vendet: </span>
-                                            <span>Të gjitha vendet</span>
+                                            <span>Available in: </span>
+                                            {method.countries?.length > 0 
+                                                ? method.countries.join(', ')
+                                                : 'All countries'}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex space-x-2 ml-4">
+                                <div className="flex space-x-2">
                                     <button
                                         onClick={() => handleEditClick(method)}
-                                        className="text-blue-600 hover:text-blue-800"
+                                        className="p-2 text-blue-600 hover:text-blue-800"
                                     >
-                                        Edito
+                                        Edit
                                     </button>
                                     <button
                                         onClick={() => handleDelete(method.id)}
-                                        className="text-red-600 hover:text-red-800"
+                                        className="p-2 text-red-600 hover:text-red-800"
                                     >
-                                        Fshi
+                                        Delete
                                     </button>
                                 </div>
                             </div>
                         ))}
                     </div>
+                </div>
+            </div>
+
+            <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Add New Country</h2>
+                <div className="mb-4">
+                    <form onSubmit={handleAddCountry} className="flex gap-2 items-center">
+                        <input
+                            type="text"
+                            value={newCountry}
+                            onChange={e => setNewCountry(e.target.value)}
+                            placeholder="Add new country"
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        />
+                        <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                        >
+                            Add Country
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

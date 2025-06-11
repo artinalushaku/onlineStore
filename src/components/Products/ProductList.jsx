@@ -121,7 +121,10 @@ const ProductList = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 py-12">
+                <h1 className="text-4xl font-extrabold mb-10 text-center tracking-tight text-gray-900 drop-shadow-lg">
+                    Produktet
+                </h1>
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Filters Sidebar */}
                     <div className="lg:w-64 flex-shrink-0">
@@ -259,40 +262,31 @@ const ProductList = () => {
                         </div>
                     </div>
 
-                    {/* Products Grid */}
+                    {/* Product Grid */}
                     <div className="flex-1">
-                        {products.length === 0 ? (
-                            <div className="text-center py-12">
-                                <h3 className="text-xl font-medium text-gray-900 mb-2">Nuk u gjetën produkte</h3>
-                                <p className="text-gray-500">Provoni të ndryshoni filtrat tuaja</p>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {products.map(product => (
-                                        <ProductCard key={product._id || product.id} product={product} />
-                                    ))}
-                                </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+                            {products.map(product => (
+                                <ProductCard key={product.id || product._id} product={product} />
+                            ))}
+                        </div>
 
-                                {/* Pagination */}
-                                {totalPages > 1 && (
-                                    <div className="flex justify-center mt-8 space-x-2">
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                            <button
-                                                key={page}
-                                                onClick={() => handlePageChange(page)}
-                                                className={`px-4 py-2 rounded-lg ${
-                                                    currentPage === page
-                                                        ? 'bg-indigo-600 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </>
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center mt-8 space-x-2">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <button
+                                        key={page}
+                                        onClick={() => handlePageChange(page)}
+                                        className={`px-4 py-2 rounded-lg ${
+                                            currentPage === page
+                                                ? 'bg-indigo-600 text-white'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
@@ -301,4 +295,4 @@ const ProductList = () => {
     );
 };
 
-export default ProductList; 
+export default ProductList;

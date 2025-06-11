@@ -9,24 +9,23 @@ const OrderDetails = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        const fetchOrderDetails = async () => {
+            try {
+                const response = await axios.get(`/api/orders/${orderId}`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                setOrder(response.data);
+                setLoading(false);
+            } catch (error) {
+                console.error('Gabim gjatë marrjes së detajeve të porosisë:', error);
+                setError('Nuk mund të merren detajet e porosisë. Ju lutemi provoni përsëri.');
+                setLoading(false);
+            }
+        };
         fetchOrderDetails();
-    }, [fetchOrderDetails]);
-
-    const fetchOrderDetails = async () => {
-        try {
-            const response = await axios.get(`/api/orders/${orderId}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            setOrder(response.data);
-            setLoading(false);
-        } catch (error) {
-            console.error('Gabim gjatë marrjes së detajeve të porosisë:', error);
-            setError('Nuk mund të merren detajet e porosisë. Ju lutemi provoni përsëri.');
-            setLoading(false);
-        }
-    };
+    }, [orderId]);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -56,6 +55,35 @@ const OrderDetails = () => {
             default:
                 return status;
         }
+    };
+
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
+                } catch {
+                    return '';
+                }
+            }
+            return images;
+        }
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return 'https://via.placeholder.com/80x80?text=No+Image';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
     };
 
     if (loading) {
@@ -129,24 +157,24 @@ const OrderDetails = () => {
                                 </h3>
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <p className="text-gray-900">
-                                        {order.shipping.firstName} {order.shipping.lastName}
+                                        {(order.shipping?.firstName || order.shippingAddress?.firstName || '')} {(order.shipping?.lastName || order.shippingAddress?.lastName || '')}
                                     </p>
                                     <p className="text-gray-600">
-                                        {order.shipping.address1}
+                                        {order.shipping?.address1 || order.shippingAddress?.address1 || ''}
                                     </p>
-                                    {order.shipping.address2 && (
+                                    {(order.shipping?.address2 || order.shippingAddress?.address2) && (
                                         <p className="text-gray-600">
-                                            {order.shipping.address2}
+                                            {order.shipping?.address2 || order.shippingAddress?.address2}
                                         </p>
                                     )}
                                     <p className="text-gray-600">
-                                        {order.shipping.city}, {order.shipping.postalCode}
+                                        {(order.shipping?.city || order.shippingAddress?.city || '')}, {(order.shipping?.postalCode || order.shippingAddress?.postalCode || '')}
                                     </p>
                                     <p className="text-gray-600">
-                                        {order.shipping.country}
+                                        {order.shipping?.country || order.shippingAddress?.country || ''}
                                     </p>
                                     <p className="text-gray-600">
-                                        Telefon: {order.shipping.phone}
+                                        Telefon: {order.shipping?.phone || order.shippingAddress?.phone || ''}
                                     </p>
                                 </div>
                             </div>
@@ -157,13 +185,10 @@ const OrderDetails = () => {
                                 </h3>
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <p className="text-gray-900">
-                                        Metoda: {order.payment.method === 'card' ? 'Kartë Krediti' : 'Para në Dorë'}
+                                        Metoda: {(order.payment?.method || order.paymentMethod) === 'card' ? 'Kartë Krediti' : 'Para në Dorë'}
                                     </p>
                                     <p className="text-gray-900">
-                                        Totali: {order.total.toFixed(2)}€
-                                    </p>
-                                    <p className="text-gray-900">
-                                        TVSH: {order.tax.toFixed(2)}€
+                                        Totali: {order.total !== undefined && order.total !== null && !isNaN(Number(order.total)) ? Number(order.total).toFixed(2) : (order.totalAmount !== undefined && order.totalAmount !== null && !isNaN(Number(order.totalAmount)) ? Number(order.totalAmount).toFixed(2) : '0.00')}€
                                     </p>
                                     <p className="text-gray-900">
                                         Transporti: {order.shippingMethod?.price?.toFixed(2) || '0.00'}€
@@ -183,13 +208,13 @@ const OrderDetails = () => {
                                         className="flex items-center bg-gray-50 rounded-lg p-4"
                                     >
                                         <img
-                                            src={item.product.images[0]}
-                                            alt={item.product.name}
+                                            src={getImageSrc(getFirstImage(item.product?.images || item.Product?.images))}
+                                            alt={item.Product?.name || item.product?.name || item.productName || 'Pa emër'}
                                             className="w-20 h-20 object-cover rounded-md"
                                         />
                                         <div className="ml-4 flex-1">
                                             <h4 className="font-medium">
-                                                {item.product.name}
+                                                {item.Product?.name || item.product?.name || item.productName || 'Pa emër'}
                                             </h4>
                                             <p className="text-sm text-gray-600">
                                                 Sasia: {item.quantity}

@@ -165,6 +165,18 @@ const ProductManagement = () => {
         }
     };
 
+    // Funksion ndihmës për path-in e imazhit
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -273,7 +285,7 @@ const ProductManagement = () => {
                                 {formData.images.map((image, index) => (
                                     <img
                                         key={index}
-                                        src={image}
+                                        src={getImageSrc(image)}
                                         alt={`Preview ${index + 1}`}
                                         className="w-full h-24 object-cover rounded"
                                     />
@@ -307,7 +319,7 @@ const ProductManagement = () => {
                                 <div className="flex items-center space-x-4">
                                     {product.images[0] && (
                                         <img
-                                            src={product.images[0]}
+                                            src={getImageSrc(product.images[0])}
                                             alt={product.name}
                                             className="w-16 h-16 object-cover rounded"
                                         />

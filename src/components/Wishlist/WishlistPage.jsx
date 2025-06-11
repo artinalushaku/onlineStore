@@ -57,6 +57,35 @@ const WishlistPage = () => {
         }
     };
 
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
+                } catch {
+                    return '';
+                }
+            }
+            return images;
+        }
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -87,7 +116,7 @@ const WishlistPage = () => {
                         >
                             <Link to={`/products/${item.product._id}`}>
                                 <img
-                                    src={item.product.images[0]}
+                                    src={getImageSrc(getFirstImage(item.product.images))}
                                     alt={item.product.name}
                                     className="w-full h-48 object-cover"
                                 />

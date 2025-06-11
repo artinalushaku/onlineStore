@@ -55,21 +55,33 @@ const CategoryDetails = () => {
         }
     };
 
-    const getImageSrc = (product) => {
-        let imageSrc = product.image;
-        if (!imageSrc) {
-            if (Array.isArray(product.images)) {
-                imageSrc = product.images[0];
-            } else if (typeof product.images === 'string') {
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
                 try {
-                    const arr = JSON.parse(product.images);
-                    imageSrc = Array.isArray(arr) ? arr[0] : product.images;
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
                 } catch {
-                    imageSrc = product.images;
+                    return '';
                 }
             }
+            return images;
         }
-        return imageSrc;
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
     };
 
     if (loading) {
@@ -89,27 +101,30 @@ const CategoryDetails = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold mb-2">{category.name}</h2>
-            <p className="mb-6 text-gray-600">{category.description}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="container mx-auto px-4 py-12">
+            <h2 className="text-4xl font-extrabold mb-4 text-center tracking-tight bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+                {category.name}
+            </h2>
+            {category.description && (
+                <p className="mb-10 text-lg text-center text-gray-600 max-w-2xl mx-auto">{category.description}</p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
                 {Array.isArray(products) && products.length === 0 ? (
                     <div className="col-span-full text-center text-gray-500">Nuk ka produkte në këtë kategori.</div>
                 ) : (
                     Array.isArray(products) && products.map(product => (
-                        <div key={product._id || product.id} className="bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-                            <Link to={`/products/${product._id || product.id}`} className="block">
-                                <div className="relative aspect-[4/3]">
-                                    <img 
-                                        src={getImageSrc(product)} 
-                                        alt={product.name} 
-                                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        <div key={product._id || product.id} className="bg-white/30 backdrop-blur-lg border border-white/20 rounded-3xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl flex flex-col">
+                            <Link to={`/products/${product._id || product.id}`} className="block group relative">
+                                <div className="relative aspect-[4/3] overflow-hidden">
+                                    <img
+                                        src={getImageSrc(getFirstImage(product.images))}
+                                        alt={product.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
                                     {product.discount > 0 && (
-                                        <div className="absolute top-2 right-2">
-                                            <span className="inline-flex items-center justify-center px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full">
-                                                -{product.discount}%
-                                            </span>
+                                        <div className="absolute top-4 left-4 bg-red-600 text-white font-bold px-3 py-1 rounded-full text-xs shadow-md">
+                                            -{product.discount}%
                                         </div>
                                     )}
                                     {product.stock === 0 && (
@@ -118,64 +133,64 @@ const CategoryDetails = () => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="p-3">
-                                    <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 hover:text-indigo-600 transition-colors duration-200">
+                            </Link>
+                            <div className="p-6 flex flex-col gap-3 flex-1">
+                                <Link to={`/products/${product._id || product.id}`}>
+                                    <h3 className="text-xl font-bold mb-1 text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
                                         {product.name}
                                     </h3>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        {product.discount > 0 ? (
-                                            <>
-                                                <span className="text-gray-400 line-through text-xs">
-                                                    {product.price}€
-                                                </span>
-                                                <span className="text-base font-bold text-red-500">
-                                                    {(product.price - (product.price * product.discount / 100)).toFixed(2)}€
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <span className="text-base font-bold text-gray-800">
+                                </Link>
+                                <div className="flex items-center gap-2 mb-2">
+                                    {product.discount > 0 ? (
+                                        <>
+                                            <span className="text-gray-400 line-through text-xs">
                                                 {product.price}€
                                             </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="flex text-yellow-400">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <svg
-                                                        key={i}
-                                                        className={`w-3 h-3 ${i < Math.floor(product.rating || 0) ? 'fill-current' : 'stroke-current fill-none'}`}
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth="2"
-                                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                                                        />
-                                                    </svg>
-                                                ))}
-                                            </div>
-                                            <span className="text-gray-500 text-xs ml-1">
-                                                ({product.rating || 0})
+                                            <span className="text-lg font-bold text-red-500">
+                                                {(product.price - (product.price * product.discount / 100)).toFixed(2)}€
                                             </span>
-                                        </div>
-                                        {product.stock > 0 && (
-                                            <span className="text-green-500 text-xs font-medium">
-                                                Në Gjendje
-                                            </span>
-                                        )}
-                                    </div>
+                                        </>
+                                    ) : (
+                                        <span className="text-lg font-bold text-gray-800">
+                                            {product.price}€
+                                        </span>
+                                    )}
                                 </div>
-                            </Link>
-                            {product.stock > 0 && (
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex text-yellow-400">
+                                        {[...Array(5)].map((_, i) => (
+                                            <svg
+                                                key={i}
+                                                className={`w-4 h-4 ${i < Math.floor(product.rating || 0) ? 'fill-current' : 'stroke-current fill-none'}`}
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                                />
+                                            </svg>
+                                        ))}
+                                    </div>
+                                    <span className="text-gray-500 text-xs ml-1">
+                                        ({product.rating || 0})
+                                    </span>
+                                    {product.stock > 0 && (
+                                        <span className="text-green-500 text-xs font-medium ml-auto">
+                                            Në Gjendje
+                                        </span>
+                                    )}
+                                </div>
                                 <button
                                     onClick={(e) => handleAddToCart(e, product._id || product.id)}
-                                    className="w-full py-1.5 bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors duration-200"
+                                    disabled={product.stock === 0}
+                                    className="mt-auto w-full py-2 bg-gradient-to-r from-primary to-blue-500 text-white font-semibold rounded-xl shadow hover:from-blue-500 hover:to-primary transition-all duration-300 text-base tracking-wide backdrop-blur-md disabled:opacity-50"
                                 >
                                     Shto në Shportë
                                 </button>
-                            )}
+                            </div>
+                            <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-primary transition-all duration-300 pointer-events-none"></div>
                         </div>
                     ))
                 )}

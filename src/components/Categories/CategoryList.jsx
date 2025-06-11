@@ -23,6 +23,38 @@ const CategoryList = () => {
         }
     };
 
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
+                } catch {
+                    return '';
+                }
+            }
+            return images;
+        }
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        // Nëse është path absolut Windows, nxirr vetëm emrin e skedarit
+        const fileName = imgPath.split('\\').pop().split('/').pop();
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        // Nëse është vetëm emri i skedarit ose path absolut
+        return `http://localhost:5000/uploads/${fileName}`;
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -40,53 +72,53 @@ const CategoryList = () => {
     }
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-            {categories.map((category) => (
-                <Link
-                    key={category.id}
-                    to={`/category/${category.id}`}
-                    className="block group"
-                >
-                    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:transform group-hover:scale-105">
-                        {category.image && (
-                            <div className="relative aspect-[3/2]">
-                                <img
-                                    src={category.image}
-                                    alt={category.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="container mx-auto px-4 py-12">
+            <h1 className="text-4xl font-extrabold mb-10 text-center tracking-tight bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+                Kategoritë
+            </h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+                {categories.map((category) => (
+                    <Link
+                        key={category.id}
+                        to={`/category/${category.id}`}
+                        className="group relative block rounded-3xl overflow-hidden shadow-xl bg-white/30 backdrop-blur-lg border border-white/20 hover:scale-105 hover:shadow-2xl transition-all duration-300"
+                    >
+                        <div className="relative aspect-[4/3] overflow-hidden">
+                            <img
+                                src={getImageSrc(category.image)}
+                                alt={category.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
+                            <div className="absolute top-4 left-4 bg-white/80 text-primary font-bold px-3 py-1 rounded-full text-xs shadow-md backdrop-blur-sm">
+                                {category.name}
                             </div>
-                        )}
-                        <div className="p-4">
-                            <h2 className="text-base font-semibold mb-2 text-gray-800 group-hover:text-primary line-clamp-1">
+                            {/* Badge për numrin e produkteve nëse ka (opsionale) */}
+                            {category.productCount && (
+                                <div className="absolute top-4 right-4 bg-primary text-white font-bold px-3 py-1 rounded-full text-xs shadow-md">
+                                    {category.productCount} produkte
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-6 flex flex-col gap-3">
+                            <h2 className="text-2xl font-bold mb-1 text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
                                 {category.name}
                             </h2>
                             {category.description && (
-                                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                                <p className="text-gray-600 text-sm line-clamp-2 mb-2">
                                     {category.description}
                                 </p>
                             )}
-                            <div className="flex items-center text-sm text-primary font-medium">
-                                <span>Shiko produktet</span>
-                                <svg
-                                    className="w-4 h-4 ml-2 transform group-hover:translate-x-2 transition-transform"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 5l7 7-7 7"
-                                    />
-                                </svg>
-                            </div>
+                            <button
+                                className="mt-auto w-full py-2 bg-gradient-to-r from-primary to-blue-500 text-white font-semibold rounded-xl shadow hover:from-blue-500 hover:to-primary transition-all duration-300 text-base tracking-wide backdrop-blur-md"
+                            >
+                                Shiko produktet
+                            </button>
                         </div>
-                    </div>
-                </Link>
-            ))}
+                        <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-primary transition-all duration-300 pointer-events-none"></div>
+                    </Link>
+                ))}
+            </div>
         </div>
     );
 };

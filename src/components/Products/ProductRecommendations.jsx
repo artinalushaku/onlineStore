@@ -98,7 +98,7 @@ const Section = ({ title, products, navigate, getImage }) => (
                     >
                         <div className="relative">
                             <img
-                                src={getImage(product)}
+                                src={getImage(product)?.startsWith('http') ? getImage(product) : `http://localhost:5000/uploads/${getImage(product)}`}
                                 alt={product.name}
                                 className="w-full h-48 object-cover"
                             />
@@ -165,4 +165,4 @@ const Section = ({ title, products, navigate, getImage }) => (
     </div>
 );
 
-export default ProductRecommendations; 
+export default ProductRecommendations;

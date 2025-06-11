@@ -32,6 +32,35 @@ const Cart = () => {
         return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
     };
 
+    // Funksion ndihmës për të marrë imazhin e parë nga struktura të ndryshme
+    const getFirstImage = (images) => {
+        if (!images) return '';
+        if (Array.isArray(images)) return images[0];
+        if (typeof images === 'string') {
+            if (images.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(images);
+                    return Array.isArray(arr) ? arr[0] : '';
+                } catch {
+                    return '';
+                }
+            }
+            return images;
+        }
+        return '';
+    };
+
+    const getImageSrc = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/uploads/')) {
+            return `http://localhost:5000${imgPath}`;
+        }
+        if (imgPath.startsWith('http')) {
+            return imgPath;
+        }
+        return `http://localhost:5000/uploads/${imgPath}`;
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-8">Shporta</h1>
@@ -42,13 +71,17 @@ const Cart = () => {
                             key={item.productId}
                             className="flex items-center border-b py-4"
                         >
-                            <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-20 h-20 object-cover rounded-md"
-                            />
+                            <Link to={`/products/${item.productId}`}>
+                                <img
+                                    src={getImageSrc(getFirstImage(item.image))}
+                                    alt={item.name}
+                                    className="w-20 h-20 object-cover rounded-md"
+                                />
+                            </Link>
                             <div className="ml-4 flex-1">
-                                <h3 className="font-semibold">{item.name}</h3>
+                                <Link to={`/products/${item.productId}`}>
+                                    <h3 className="font-semibold">{item.name}</h3>
+                                </Link>
                                 <p className="text-gray-600">{item.price}€</p>
                                 <div className="flex items-center mt-2">
                                     <span className="mx-4">Sasia: {item.quantity}</span>

@@ -3,17 +3,17 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const OrderSuccess = () => {
-    const { orderId } = useParams();
+    const { id } = useParams();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchOrderDetails();
-    }, [orderId]);
+    }, [id]);
 
     const fetchOrderDetails = async () => {
         try {
-            const response = await axios.get(`/api/orders/${orderId}`, {
+            const response = await axios.get(`/api/orders/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -80,14 +80,14 @@ const OrderSuccess = () => {
                             <h2 className="text-sm font-medium text-gray-600 mb-1">
                                 Numri i Porosisë
                             </h2>
-                            <p className="text-gray-900">{order._id}</p>
+                            <p className="text-gray-900">{order._id || order.id}</p>
                         </div>
                         <div>
                             <h2 className="text-sm font-medium text-gray-600 mb-1">
                                 Data e Porosisë
                             </h2>
                             <p className="text-gray-900">
-                                {new Date(order.createdAt).toLocaleDateString()}
+                                {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ''}
                             </p>
                         </div>
                         <div>
@@ -102,7 +102,11 @@ const OrderSuccess = () => {
                             <h2 className="text-sm font-medium text-gray-600 mb-1">
                                 Totali
                             </h2>
-                            <p className="text-gray-900">{order.totalAmount.toFixed(2)}€</p>
+                            <p className="text-gray-900">
+                                {order.totalAmount && !isNaN(Number(order.totalAmount))
+                                    ? Number(order.totalAmount).toFixed(2)
+                                    : '0.00'}€
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -110,42 +114,51 @@ const OrderSuccess = () => {
                 <div className="mb-6">
                     <h2 className="text-lg font-semibold mb-4">Produktet e Porosisë</h2>
                     <div className="space-y-4">
-                        {order.items.map(item => (
-                            <div key={item._id} className="flex items-center">
+                        {order.items && order.items.length > 0 ? order.items.map(item => (
+                            <div key={item._id || item.id} className="flex items-center">
                                 <img
-                                    src={item.product.images[0]}
-                                    alt={item.product.name}
+                                    src={item.Product?.images?.[0] || ''}
+                                    alt={item.Product?.name || item.productName || ''}
                                     className="w-16 h-16 object-cover rounded-md"
                                 />
                                 <div className="ml-4 flex-1">
-                                    <h3 className="font-medium">{item.product.name}</h3>
+                                    <h3 className="font-medium">{item.Product?.name || item.productName || ''}</h3>
                                     <p className="text-sm text-gray-600">
                                         Sasia: {item.quantity}
                                     </p>
                                 </div>
                                 <div className="text-right">
                                     <p className="font-medium">
-                                        {item.product.discount
-                                            ? (item.product.price - (item.product.price * item.product.discount / 100)) * item.quantity
-                                            : item.product.price * item.quantity}€
+                                        {item.Product
+                                            ? (
+                                                item.Product.discount
+                                                    ? ((item.Product.price - (item.Product.price * item.Product.discount / 100)) * item.quantity).toFixed(2)
+                                                    : (item.Product.price * item.quantity).toFixed(2)
+                                            )
+                                            : (item.price * item.quantity).toFixed(2)
+                                        }€
                                     </p>
                                 </div>
                             </div>
-                        ))}
+                        )) : <p>Nuk ka produkte në këtë porosi.</p>}
                     </div>
                 </div>
 
                 <div className="mb-6">
                     <h2 className="text-lg font-semibold mb-4">Adresa e Dërgesë</h2>
                     <div className="bg-gray-50 rounded-lg p-4">
-                        <p className="text-gray-900">
-                            {order.shippingAddress.firstName} {order.shippingAddress.lastName}
-                        </p>
-                        <p className="text-gray-600">{order.shippingAddress.address}</p>
-                        <p className="text-gray-600">
-                            {order.shippingAddress.city}, {order.shippingAddress.postalCode}
-                        </p>
-                        <p className="text-gray-600">{order.shippingAddress.country}</p>
+                        {order.shippingAddress ? (
+                            <>
+                                <p className="text-gray-900">
+                                    {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                                </p>
+                                <p className="text-gray-600">{order.shippingAddress.address || order.shippingAddress.address1}</p>
+                                <p className="text-gray-600">
+                                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                                </p>
+                                <p className="text-gray-600">{order.shippingAddress.country}</p>
+                            </>
+                        ) : <p>Adresa e dërgesës nuk u gjet.</p>}
                     </div>
                 </div>
 
